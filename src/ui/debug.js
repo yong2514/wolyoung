@@ -1,0 +1,51 @@
+// 디버그 패널 (?debug=1). 화면 위 HTML 버튼. 글자는 textContent로만 넣는다.
+// 웨이브 건너뛰기·즉시 레벨업·선옥·인연·첫 판 다시 보기는 해당 단계에서 붙인다.
+export class DebugPanel {
+  constructor(scene) {
+    this.scene = scene;
+    const root = document.createElement('div');
+    root.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left) + 4px);top:calc(env(safe-area-inset-top) + 56px);'
+      + 'z-index:10;font:12px system-ui,sans-serif;color:#dfe4f2;background:rgba(11,15,38,.7);'
+      + 'padding:4px;border-radius:6px;max-width:220px;user-select:none;';
+    this.info = document.createElement('div');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;';
+    root.append(this.info, row);
+
+    const btn = (text, fn) => {
+      const b = document.createElement('button');
+      b.textContent = text;
+      b.style.cssText = 'font:12px system-ui,sans-serif;padding:6px 8px;min-height:32px;border-radius:5px;'
+        + 'border:1px solid #b9a6e8;background:#2a3370;color:#dfe4f2;';
+      b.addEventListener('click', (e) => { e.stopPropagation(); fn(b); });
+      row.append(b);
+      return b;
+    };
+    const godLabel = () => (scene.god ? '무적: 켜짐' : '무적: 꺼짐');
+    btn(godLabel(), (b) => { scene.god = !scene.god; b.textContent = godLabel(); });
+    btn('잡귀 150', () => scene.enemies.fill(150 - scene.enemies.count, scene.clock.now));
+    btn('+30초', () => { scene.clock.now += 30000; });
+    btn('체력 회복', () => { scene.player.hp = scene.player.maxHp; });
+    btn('새 판', () => scene.scene.restart());
+    const fold = btn('접기', () => {
+      const hide = row.dataset.folded !== '1';
+      row.dataset.folded = hide ? '1' : '0';
+      [...row.children].forEach((c) => { if (c !== fold) c.style.display = hide ? 'none' : ''; });
+      fold.textContent = hide ? '펴기' : '접기';
+    });
+
+    document.body.append(root);
+    this.root = root;
+    this.frames = 0;
+  }
+
+  update() {
+    if (++this.frames % 15) return;
+    const sc = this.scene;
+    const fps = Math.round(sc.perf.fps);
+    this.info.textContent = `프레임 ${fps} · 요괴 ${sc.enemies.count}/${sc.enemies.cap}`
+      + ` · 조각 x${sc.effects.particleScale} · 시드 ${sc.seed}`;
+  }
+
+  destroy() { this.root.remove(); }
+}

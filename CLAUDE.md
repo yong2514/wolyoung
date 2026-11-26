@@ -10,7 +10,8 @@
 
 ## 명령어 (Node는 PATH에 없을 수 있음: `C:\Program Files\nodejs`를 PATH 앞에 붙여 실행)
 - `npm run dev` 개발 서버(같은 와이파이 휴대폰: http://<노트북 IP>:5173)
-- `npm run check` 빌드 + Playwright 화면 없는 브라우저 점검. 단계를 끝낼 때 반드시 통과. `SHOT=<경로>`면 화면 사진 저장
+- `npm run check` 빌드 + Playwright 점검(자동 플레이 한 판, 같은 시드 재현, 잡귀 150마리 평균 50프레임). 단계 끝에 반드시 통과
+- `node scripts/shot.mjs <png> "<?값>" <ms>` 빌드본 화면 사진(확인용). 모든 node를 끄는 taskkill은 쓰지 않는다(개발 서버도 꺼짐)
 - `npm run build` → `dist/`. main에 push하면 GitHub Actions가 GitHub Pages로 배포(`.github/workflows/deploy.yml`)
 - 배포 주소: https://yong2514.github.io/wolyoung/ (Vite base `/wolyoung/`, vite.config.js). gh는 `C:\Program Files\GitHub CLI`
 
@@ -18,7 +19,8 @@
 - Phaser 3.90.0 고정, Arcade 물리만, JS ES 모듈, Vite. 기준 화면 390×844 세로, Scale FIT, safe-area 반영
 - 밸런스 수치는 전부 `src/config/balance.js`(항목마다 한국어 설명). 코드에 숫자를 직접 쓰지 않는다
 - 무작위는 `src/systems/rng.js` 시드 난수 하나만. Math.random 금지
-- 시간은 게임 안 시계 하나(일시정지·카드·느려지기 반영). 웨이브·쿨타임·무적에 Date.now 금지
+- 시간은 게임 안 시계 하나(`systems/clock.js`, 일시정지·카드·느려지기 반영). 웨이브·쿨타임·무적에 Date.now 금지
+- 게임은 고정 걸음(STEP=1/60초)으로만 진행 → 같은 시드+같은 입력이면 같은 판. 화면 효과 난수는 `rng.fork('fx')`처럼 갈라 써서 게임 흐름에 영향 없게
 - 요괴·탄·구슬·숫자·파티클은 오브젝트 풀링. 가까운 적 찾기·충돌은 공간 격자
 - 아군 효과는 남색·은색·연보라, 요괴 공격·예고는 붉은·주황만. 위협 공격은 0.5초 이상 예고
 - 버튼은 화면 아래 60% 안, 터치 영역 48px 이상. 왼손 모드(좌우 반전)
@@ -33,7 +35,9 @@
 - `src/main.js` 게임 시작 설정
 - `src/config/` balance.js(밸런스), assets.js(이미지·소리 경로), display.js(화면 크기·색)
 - `src/data/` story.js(동료 대사), spells.js, enemies.js
-- `src/scenes/` 장면, `src/systems/` 규칙·계산, `src/ui/` 화면 부품
+- `src/scenes/` BootScene(도형 그림 만들기) → GameScene(한 판: 상태 play/paused/countdown/over)
+- `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·흔들림·진동)·enemies·player·weapons·perf·autoplay
+- `src/ui/` joystick·hud·button·overlays(게임오버·일시정지·3초 세기)·debug(HTML 패널)
 - `scripts/check.mjs` 자동 점검, `docs/기획서.md` 기획 전문, `PROGRESS.md` 진행 상황
 
 ## 작업 방식
