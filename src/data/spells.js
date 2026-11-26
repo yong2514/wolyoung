@@ -18,7 +18,7 @@ const STAT_LABELS = {
 };
 
 function fmt(name, v) {
-  if (name === 'cooldownMs' || name === 'durationMs') return `${(v / 1000).toFixed(1)}초`;
+  if (name === 'cooldownMs' || name === 'durationMs') return `${parseFloat((v / 1000).toFixed(2))}초`;
   return String(v);
 }
 

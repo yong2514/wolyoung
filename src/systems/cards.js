@@ -1,8 +1,11 @@
 import { BALANCE } from '../config/balance.js';
 import { SPELLS, upgradeText } from '../data/spells.js';
 
-// 레벨업 카드 3장 고르기 (시드 난수 rng로 → 같은 시드면 같은 카드)
-// 규칙: 가진 법술 중 올릴 수 있는 게 있으면 최소 1장은 그 강화. 칸이 다 차면 가진 법술 강화만.
+// 레벨업 카드 고르기 (시드 난수 rng로 → 같은 시드면 같은 카드)
+// 규칙(사용자 요청): 한 번에 나오는 카드는 모두 같은 단계.
+//   예) 모두 '새 법술'(0→1) 또는 모두 '1단계→2단계'.
+//   3장 이상 모을 수 있는 단계 중 하나를 무작위로 고른다. 그런 단계가 없으면 가장 많은 단계로(1~2장).
+// 칸(공격 5·보조 4)이 다 차면 새 법술은 나오지 않는다.
 
 function option(book, key) {
   const def = SPELLS[key];
@@ -21,31 +24,29 @@ function option(book, key) {
 export function rollCards(book, rng, n = 3) {
   const maxL = BALANCE.spells.maxLevel;
   const slots = BALANCE.spells.slots;
-  const upgrades = [];
-  const fresh = [];
+  const groups = new Map(); // 지금 단계 → 법술들
   for (const key of Object.keys(SPELLS)) {
     const L = book.level(key);
-    if (L > 0) {
-      if (L < maxL) upgrades.push(key);
-    } else if (book.count(SPELLS[key].kind) < slots[SPELLS[key].kind]) {
-      fresh.push(key);
-    }
+    const kind = SPELLS[key].kind;
+    if (L >= maxL) continue;
+    if (L === 0 && book.count(kind) >= slots[kind]) continue;
+    if (!groups.has(L)) groups.set(L, []);
+    groups.get(L).push(key);
+  }
+  if (!groups.size) {
+    return [{ key: 'elixir', name: '영약', kind: 'item', isNew: false, text: `체력 ${BALANCE.elixirHeal} 회복` }];
   }
 
+  const levels = [...groups.keys()].sort((a, b) => a - b);
+  let choices = levels.filter((L) => groups.get(L).length >= n);
+  if (!choices.length) {
+    const most = Math.max(...levels.map((L) => groups.get(L).length));
+    choices = levels.filter((L) => groups.get(L).length === most);
+  }
+  const level = choices[Math.floor(rng.next() * choices.length)];
+
+  const pool = groups.get(level).slice();
   const picked = [];
-  const take = (arr) => picked.push(arr.splice(Math.floor(rng.next() * arr.length), 1)[0]);
-  if (upgrades.length) take(upgrades); // 최소 1장은 강화
-  const rest = upgrades.concat(fresh);
-  while (picked.length < n && rest.length) take(rest);
-
-  const cards = picked.map((k) => option(book, k));
-  // 강화 카드가 늘 맨 앞에 오지 않도록 섞는다
-  for (let i = cards.length - 1; i > 0; i--) {
-    const j = Math.floor(rng.next() * (i + 1));
-    [cards[i], cards[j]] = [cards[j], cards[i]];
-  }
-  if (!cards.length) {
-    cards.push({ key: 'elixir', name: '영약', kind: 'item', isNew: false, text: `체력 ${BALANCE.elixirHeal} 회복` });
-  }
-  return cards;
+  while (picked.length < n && pool.length) picked.push(pool.splice(Math.floor(rng.next() * pool.length), 1)[0]);
+  return picked.map((k) => option(book, k));
 }
