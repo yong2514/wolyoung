@@ -12,7 +12,8 @@ import { Player } from '../systems/player.js';
 import { SpellBook } from '../systems/spellbook.js';
 import { Orbs } from '../systems/orbs.js';
 import { Leveling } from '../systems/leveling.js';
-import { rollCards } from '../systems/cards.js';
+import { rollCards, stashCard } from '../systems/cards.js';
+import { StashButton, showStash } from '../ui/stash.js';
 import { PerfMonitor } from '../systems/perf.js';
 import { AutoPlayer } from '../systems/autoplay.js';
 import { sfx } from '../systems/audio.js';
@@ -24,7 +25,7 @@ import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
-// 한 판. state: play(진행) · card(카드 고르기) · paused(일시정지) · countdown(3초 세기) · over(끝)
+// 한 판. state: play(진행) · card(카드 고르기) · stash(보관함) · target(멸요인 구역) · paused(일시정지) · countdown(3초) · over(끝)
 export class GameScene extends Phaser.Scene {
   constructor() { super('Game'); }
 
@@ -38,6 +39,7 @@ export class GameScene extends Phaser.Scene {
     this.state = 'play';
     this.stats = { kills: 0, maxEnemies: 0, firstCardMs: null };
     this.run = { refresh: BALANCE.cards.refreshPerRun, banish: BALANCE.cards.banishPerRun }; // 이 판에 남은 횟수
+    this.stash = []; // 보관한 카드 { key, gain, rarity }
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
     const cell = BALANCE.limits.gridCell;
@@ -52,6 +54,7 @@ export class GameScene extends Phaser.Scene {
     this.book.learn(BALANCE.spells.startWith);
     this.joystick = new Joystick(this);
     this.hud = new Hud(this);
+    this.stashBtn = new StashButton(this, () => this.openStash());
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
@@ -89,6 +92,7 @@ export class GameScene extends Phaser.Scene {
     this.bg.tilePositionX = cam.scrollX;
     this.bg.tilePositionY = cam.scrollY;
     this.hud.update();
+    this.stashBtn.update(this.stash.length);
     this.perf.update(delta);
     this.debug?.update();
   }
@@ -128,6 +132,7 @@ export class GameScene extends Phaser.Scene {
       banishLeft: this.run.banish,
       onPick: (i) => this.pickCard(cards[i]),
       onRefresh: () => { this.run.refresh--; this.openCards(true); },
+      keepLeft: BALANCE.cards.stashMax - this.stash.length,
       onBanish: (i) => {
         const c = cards[i];
         if (c.kind === 'fusion' || c.kind === 'item') return false; // 합일·영약은 봉인 못 함
@@ -135,6 +140,15 @@ export class GameScene extends Phaser.Scene {
         this.run.banish--;
         ui.destroy();
         this.openCards(true);
+        return true;
+      },
+      onKeep: (i) => { // 보관: 이번 레벨업은 카드를 보관함에 넣는 것으로 끝
+        const c = cards[i];
+        if (c.kind === 'fusion' || c.kind === 'item') return false;
+        this.stash.push({ key: c.key, gain: c.gain, rarity: c.rarity });
+        sfx.play('pick');
+        this.leveling.pending--;
+        this.state = 'play';
         return true;
       },
     });
@@ -150,6 +164,21 @@ export class GameScene extends Phaser.Scene {
     this.leveling.pending--;
     this.state = 'play';
     // 남은 레벨업이 있으면 update에서 바로 다음 카드를 연다
+  }
+
+  /** 보관함 열기 (게임 멈춤) → 카드를 고르면 지금 적용 */
+  openStash() {
+    if (this.state !== 'play' || !this.stash.length) return;
+    this.state = 'stash';
+    this.joystick.reset();
+    const cards = this.stash.map((item) => stashCard(this.book, item));
+    showStash(this, cards, (i) => {
+      const c = cards[i];
+      this.stash.splice(i, 1);
+      sfx.play(c.rarity === 'legend' ? 'levelup' : 'pick');
+      this.book.learn(c.key, c.to);
+      this.state = 'play';
+    }, () => { this.state = 'play'; });
   }
 
   /** 합일 연출: 금빛 고리 + 큰 글씨 */

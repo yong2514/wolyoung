@@ -21,7 +21,7 @@ export const BALANCE = {
 
   spells: SPELL_BALANCE,      // 법술 수치 → balance_spells.js
   supports: SUPPORT_BALANCE,  // 보조 법술 → balance_spells.js
-  cards: CARD_BALANCE,        // 카드 등급·새로고침·봉인 → balance_spells.js
+  cards: CARD_BALANCE,        // 카드 등급·새로고침·봉인·보관함 → balance_spells.js
   elixirHeal: 30,         // 고를 법술이 하나도 없을 때 나오는 '영약' 카드: 체력 회복량
 
   // 영기 구슬과 레벨업: 요괴가 구슬을 떨어뜨리고, 주워야 영기가 오른다.
@@ -35,9 +35,9 @@ export const BALANCE = {
     mergeCount: 60,       // 넘었을 때 오래된 것부터 이만큼을 큰 구슬 하나로
   },
   xp: {                   // 다음 레벨까지 필요한 영기(= 주울 구슬 수) = base × growth^(레벨-1) + add × (레벨-1)
-    base: 6,              // Lv1→2: 구슬 6개
-    growth: 1.15,
-    add: 10,              // 레벨마다 10개씩 더 (Lv2→3: 17, Lv3→4: 28, Lv5→6: 50 …)
+    base: 5,              // Lv1→2: 구슬 5개
+    growth: 1.12,
+    add: 7,               // 레벨마다 7개씩 더 (Lv2→3: 13, Lv3→4: 20, Lv5→6: 36 …) — 사용자 요청으로 간격 좁힘
   },
   cardLockMs: 400,        // 카드가 뜬 뒤 이 시간 동안 터치를 받지 않음 (오터치 방지)
 

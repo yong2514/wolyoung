@@ -25,7 +25,23 @@ function spellCard(book, key, gain) {
   const step = to - from;
   let text = from === 0 ? def.desc : upgradeText(key, from, to);
   if (from === 0 && to > 1) text += ` (${to}단계로 시작)`;
-  return { key, name: def.name, kind: def.kind, isNew: from === 0, from, to, rarity: RARITY_BY_GAIN[step] ?? 'common', text };
+  return { key, name: def.name, kind: def.kind, isNew: from === 0, from, to, gain, rarity: RARITY_BY_GAIN[step] ?? 'common', text };
+}
+
+/**
+ * 보관함 카드를 지금 상태에 맞춰 다시 만든다 (보관할 때의 등급 = 오르는 단계 수는 그대로).
+ * 쓸 수 없으면 usable=false, reason에 까닭
+ */
+export function stashCard(book, item) {
+  const c = spellCard(book, item.key, item.gain);
+  const L = book.level(item.key);
+  const kind = SPELLS[item.key].kind;
+  c.rarity = item.rarity;
+  c.usable = true;
+  if (book.fusedParts.has(item.key)) { c.usable = false; c.reason = '합일에 쓰여 더 쓸 수 없음'; }
+  else if (L >= book.maxLevel(item.key)) { c.usable = false; c.reason = '이미 최대 단계'; }
+  else if (L === 0 && book.count(kind) >= BALANCE.spells.slots[kind]) { c.usable = false; c.reason = '법술 칸이 가득 참'; }
+  return c;
 }
 
 /** 지금 만들 수 있는 합일 (재료 두 개가 최대) */
