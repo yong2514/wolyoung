@@ -1,5 +1,8 @@
 import { BALANCE } from '../config/balance.js';
 import { sfx } from './audio.js';
+import { WALK_FRAMES } from '../scenes/playerTexture.js';
+
+const WALK_FRAME_MS = 120; // 걷기 그림 한 장을 보여 주는 시간 (게임 시간)
 
 // 플레이어 "월영": 이동, 체력, 맞기, 맞은 뒤 무적
 export class Player {
@@ -17,7 +20,7 @@ export class Player {
     this.invulnUntil = 0;
     this.aura = scene.add.image(0, 0, 'aura').setDepth(19);
     this.auraScale = 1; // 경지가 오를수록 커짐 (realm.js)
-    this.sprite = scene.add.image(0, 0, 'player').setDepth(20).setOrigin(0.5, 0.62); // 기준점 = 몸 가운데
+    this.sprite = scene.add.image(0, 0, 'player').setDepth(20).setOrigin(0.5, 0.6); // 기준점 = 몸 가운데
     this.walkT = 0; // 걷는 동안 통통 튀는 시간
   }
 
@@ -34,7 +37,10 @@ export class Player {
     } else {
       this.walkT = 0;
     }
-    const bob = this.walkT ? -Math.abs(Math.sin(this.walkT / 110)) * 3 : 0; // 걸을 때 통통
+    // 걷기: 다리 그림 4장을 번갈아 (걸음 간격 WALK_FRAME_MS), 살짝 통통. 멈추면 서 있는 그림
+    const frame = this.walkT ? `player_w${Math.floor(this.walkT / WALK_FRAME_MS) % WALK_FRAMES}` : 'player';
+    if (this.sprite.texture.key !== frame) this.sprite.setTexture(frame);
+    const bob = this.walkT ? -Math.abs(Math.sin((this.walkT / WALK_FRAME_MS) * (Math.PI / 2))) * 2 : 0;
     this.sprite.setPosition(this.x, this.y + bob);
     this.aura.setPosition(this.x, this.y).setScale(this.auraScale * (1 + 0.08 * Math.sin(now / 250)));
     // 맞은 뒤 무적 동안 깜빡임
