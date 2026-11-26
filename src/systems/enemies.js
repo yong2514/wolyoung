@@ -165,10 +165,7 @@ export class EnemySystem {
     fx.shake('kill');
     sfx.play('kill');
     this.scene.stats.kills++;
-    // 영기는 잡는 순간 오른다 (사용자 요청). 구슬은 내게 날아오는 보기용 효과
-    const xp = e.def.orb ?? BALANCE.orbs.value;
-    this.scene.leveling.add(xp);
-    this.scene.orbs.drop(e.x, e.y, xp);
+    this.scene.orbs.drop(e.x, e.y, e.def.orb ?? BALANCE.orbs.value); // 영기는 구슬을 주워야 오른다
     e.sprite.setVisible(false).clearTint();
     this.pool.release(e);
   }
