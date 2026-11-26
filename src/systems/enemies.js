@@ -38,7 +38,8 @@ export class EnemySystem {
     e.elite = elite;
     e.x = x; e.y = y;
     const growth = def.noGrowth && !elite ? 1 : 1 + BALANCE.enemies.hpGrowthPerMin * (now / 60000);
-    e.hp = def.hp * growth * this.hpMult * (elite ? E.hpMult : 1);
+    e.hp = def.boss ? def.hp * this.hpMult : def.hp * growth * this.hpMult * (elite ? E.hpMult : 1);
+    e.maxHp = e.hp;
     e.speed = def.speed * (1 + (this.rng.next() - 0.5) * BALANCE.enemies.speedJitter);
     e.damage = def.damage * (elite ? E.damageMult : 1);
     e.radius = def.radius * (elite ? E.scale : 1);
@@ -109,6 +110,12 @@ export class EnemySystem {
       const e = list[i];
       const dx = p.x - e.x;
       const dy = p.y - e.y;
+      if (e.def.boss) { // 보스는 bosses.js가 움직인다
+        e.sprite.flipX = dx < 0;
+        if (e.flashUntil && now >= e.flashUntil) e.flashUntil = 0;
+        this.updateTint(e, now);
+        continue;
+      }
       if (dx * dx + dy * dy > far2) { // 너무 멀면 앞쪽으로 다시 옮긴다 (멀리 있는 요괴는 단순 계산)
         const pt = this.ringPoint(true);
         e.x = pt.x; e.y = pt.y;
@@ -142,11 +149,15 @@ export class EnemySystem {
   }
 
   slow(e, mult, ms, now) {
+    if (e.def.boss) mult = Math.max(mult, BALANCE.boss.slowFloor); // 보스는 조금만 느려짐
     e.slowMult = Math.min(e.slowUntil > now ? e.slowMult : 1, mult);
     e.slowUntil = Math.max(e.slowUntil, now + ms);
   }
 
-  stun(e, ms, now) { e.stunUntil = Math.max(e.stunUntil, now + ms); }
+  stun(e, ms, now) {
+    if (e.def.boss) return; // 보스는 멈추지 않음
+    e.stunUntil = Math.max(e.stunUntil, now + ms);
+  }
 
   insertInto(grid) {
     const list = this.pool.active;
@@ -161,7 +172,7 @@ export class EnemySystem {
     const list = this.pool.active;
     for (let i = 0; i < list.length; i++) {
       const e = list[i];
-      if (e.inGrid) {
+      if (e.inGrid && !e.def.boss) { // 보스는 작은 요괴에 밀리지 않는다
         const n = grid.queryInto(e.x, e.y, e.radius * 2, near);
         for (let j = 0; j < n; j++) {
           const o = near[j];
@@ -227,6 +238,7 @@ export class EnemySystem {
       const dy = e.y - y;
       const d = Math.hypot(dx, dy);
       if (d > r || !e.alive) continue;
+      if (e.def.boss) { this.hit(e, dmg, now); continue; } // 보스는 날아가지 않음
       const k = push * (1 - d / r * 0.5) / (d || 1);
       e.kbx = dx * k; e.kby = dy * k;
       resetAi(e);
@@ -247,6 +259,7 @@ export class EnemySystem {
     sc.orbs.drop(x, y, def.orb * (elite ? BALANCE.enemies.elite.orbMult : 1)); // 영기는 구슬을 주워야 오른다
     this.remove(e);
     if (elite) sc.chests.drop(x, y);
+    if (def.boss) sc.bosses.onKilled(def.key, x, y);
     if (def.splitCount) { // 분열귀: 작은 분열귀로 나뉜다
       for (let k = 0; k < def.splitCount; k++) {
         const a = (k / def.splitCount) * TAU + this.rng.next();

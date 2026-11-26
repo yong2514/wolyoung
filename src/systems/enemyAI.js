@@ -25,6 +25,7 @@ export function stepEnemy(sys, e, s, now, slow) {
     case 'charger': return charger(e, dx, dy, d, sp, s, now);
     case 'ranged': return ranged(sys, e, dx, dy, d, sp, s, now);
     case 'bomber': return bomber(sys, e, dx, dy, d, sp, s, now);
+    case 'boss': return undefined; // 보스는 systems/bosses.js
     default: // 쫓아오기
       e.x += (dx / d) * sp * s;
       e.y += (dy / d) * sp * s;

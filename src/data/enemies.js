@@ -10,6 +10,9 @@ export const ENEMIES = {
   ...Object.fromEntries(Object.entries(BALANCE.enemies.types).map(([k, t]) => [k, {
     ...t, key: k, tier: -1, behavior: BEHAVIOR[k] ?? k, texture: k,
   }])),
+  // 보스: 움직임은 systems/bosses.js가 직접
+  yojang: { ...BALANCE.boss.yojang, key: 'yojang', tier: -1, behavior: 'boss', boss: true, texture: 'yojang' },
+  yohwang: { ...BALANCE.boss.yohwang, key: 'yohwang', tier: -1, behavior: 'boss', boss: true, texture: 'yohwang' },
 };
 
 /** 내 레벨에서 새로 나올 수 있는 가장 센 쫓는 요괴 단계 (0부터) */

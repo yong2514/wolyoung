@@ -19,6 +19,7 @@ export class Orbs {
   get count() { return this.pool.count; }
 
   drop(x, y, value) {
+    if (!value) return;
     if (this.count >= this.cfg.max) this.merge();
     const o = this.pool.get();
     if (!o) return;

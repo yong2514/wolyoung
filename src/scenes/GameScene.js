@@ -12,6 +12,7 @@ import { EnemyBullets } from '../systems/enemyBullets.js';
 import { Waves } from '../systems/waves.js';
 import { Chests } from '../systems/chests.js';
 import { Realm } from '../systems/realm.js';
+import { Bosses } from '../systems/bosses.js';
 import { Player } from '../systems/player.js';
 import { SpellBook } from '../systems/spellbook.js';
 import { Orbs } from '../systems/orbs.js';
@@ -61,6 +62,7 @@ export class GameScene extends Phaser.Scene {
     this.book.learn(BALANCE.spells.startWith);
     this.joystick = new Joystick(this);
     this.hud = new Hud(this);
+    this.bosses = new Bosses(this);
     this.stashBtn = new StashButton(this, () => openStash(this));
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
@@ -114,6 +116,8 @@ export class GameScene extends Phaser.Scene {
     const move = this.auto ? this.auto.vector(dt) : this.joystick.vector;
     this.player.update(dt, move, now);
     this.waves.update(dt, now);
+    this.bosses.update(dt, now);
+    if (this.state !== 'play') return; // 봉인석 붕괴로 끝남
     this.enemies.move(dt, now);
     this.grid.reset(this.player.x - W / 2 - GRID_MARGIN, this.player.y - H / 2 - GRID_MARGIN);
     this.enemies.insertInto(this.grid);
@@ -126,8 +130,34 @@ export class GameScene extends Phaser.Scene {
     this.effects.update(dt);
     this.stats.maxEnemies = Math.max(this.stats.maxEnemies, this.enemies.count);
 
+    if (this.state !== 'play') return; // 요황 처치로 끝남
     if (this.player.hp <= 0) this.gameOver();
     else if (this.auto && now >= PARAMS.autoMax * 1000) this.finishAuto('시간 끝');
+  }
+
+  /** 요황 처치: 봉인 성공 */
+  clear() {
+    this.state = 'over';
+    this.joystick.reset();
+    const p = this.player;
+    this.effects.flash('ring', p.x, p.y, { life: 1200, scale: 0.5, scaleTo: 12, tint: 0xffd36a, depth: 45 });
+    this.effects.burst(p.x, p.y, 0xffd36a, 40);
+    this.cameras.main.flash(500, 255, 240, 200);
+    sfx.play('breakthrough');
+    if (this.auto) { this.finishAuto('클리어'); return; }
+    showGameOver(this, { title: '봉인 성공!', color: '#ffe7a8', sub: '요황을 다시 봉인했다', timeMs: this.clock.now, kills: this.stats.kills },
+      () => this.scene.restart());
+  }
+
+  /** 요황이 120초 안에 쓰러지지 않음: 패배 */
+  lose(reason) {
+    this.state = 'over';
+    this.joystick.reset();
+    sfx.play('gameover');
+    this.cameras.main.shake(600, 0.02);
+    if (this.auto) { this.finishAuto('봉인석 붕괴'); return; }
+    showGameOver(this, { title: '봉인석이 부서졌다…', sub: reason, timeMs: this.clock.now, kills: this.stats.kills },
+      () => this.scene.restart());
   }
 
   pause(byHide) {

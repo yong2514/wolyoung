@@ -21,7 +21,7 @@ export class Waves {
   update(dt, now) {
     const sc = this.scene;
     const idx = Math.min(Math.floor(now / (this.cfg.waveSec * 1000)), this.cfg.list.length - 1);
-    if (idx !== this.index && now < this.cfg.bossAtSec * 1000) this.startWave(idx, now);
+    if (idx !== this.index) this.startWave(idx, now);
     const w = this.wave;
     const en = sc.enemies;
 
@@ -45,7 +45,7 @@ export class Waves {
     const start = idx * this.cfg.waveSec * 1000;
     this.eliteQueue = (w.elites ?? []).map((s) => start + s * 1000).filter((t) => t >= now);
     for (let i = 0; i < (w.chests ?? 0); i++) this.scene.chests.dropNearPlayer();
-    this.scene.hud.banner(`웨이브 ${idx + 1}`, w.label);
+    if (!w.boss) this.scene.hud.banner(`웨이브 ${idx + 1}`, w.label); // 보스 웨이브는 보스 등장 알림이 대신
   }
 
   /** 웨이브 비율(mix)대로 요괴 종류 고르기. 정예는 분열 조각 대신 다른 종류 */

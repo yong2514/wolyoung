@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { makeEnemyTextures } from './enemyTextures.js';
 import { makePlayerTexture } from './playerTexture.js';
+import { makeBossTextures } from './bossTextures.js';
 
 // 그림 대신 쓸 도형을 미리 그려 둔다 (나중에 그림 파일로 바꿀 때: config/assets.js)
 export class BootScene extends Phaser.Scene {
@@ -15,7 +16,8 @@ export class BootScene extends Phaser.Scene {
     tex('aura', 72, 72, (g) => {
       for (let r = 35; r > 16; r -= 3) { g.fillStyle(0xb9a6e8, 0.06); g.fillCircle(36, 36, r); }
     });
-    makeEnemyTextures(tex); // 요괴 5단계
+    makeEnemyTextures(tex); // 요괴
+    makeBossTextures(tex);  // 요장·요황
     // 비검: 오른쪽을 향한 은빛 검
     tex('sword', 32, 8, (g) => {
       g.fillStyle(0x8fb8ff, 0.45); g.fillRect(0, 3, 10, 2);

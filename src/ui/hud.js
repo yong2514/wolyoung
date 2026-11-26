@@ -5,6 +5,7 @@ import { formatTime } from './overlays.js';
 
 const BAR_W = 116;  // 체력 막대 길이
 const WAVE_W = 120; // 웨이브 진행 막대 길이
+const BOSS_W = 116; // 요황 체력 막대 길이 (체력 막대와 겹치지 않게)
 
 // 상단 표시: 영기 막대(맨 위) · 체력 · 남은 시간 · 웨이브 진행 · 경지 · 처치 · 레벨, 웨이브 알림, 일시정지 버튼
 export class Hud {
@@ -28,6 +29,12 @@ export class Hud {
       this.waveCells.push(fix(scene.add.rectangle(x0 + i * cw + 1, 44, 0, 6, 0xb9a6e8, 1).setOrigin(0)));
     }
     this.waveText = fix(scene.add.text(W / 2, 52, '', { fontFamily: FONT, fontSize: '12px', color: '#b9a6e8' }).setOrigin(0.5, 0));
+    // 요황이 나오면 남은 시간 자리가 보스 체력 막대로 바뀐다
+    this.bossBg = fix(scene.add.rectangle(W / 2, 26, BOSS_W + 4, 18, 0x0b0f26, 0.9).setStrokeStyle(1, 0xff9a6a, 0.8)).setVisible(false);
+    this.bossFill = fix(scene.add.rectangle(W / 2 - BOSS_W / 2, 26, BOSS_W, 14, 0xd94a3a, 1).setOrigin(0, 0.5)).setVisible(false);
+    this.bossName = fix(scene.add.text(W / 2, 26, '요황', {
+      fontFamily: FONT, fontSize: '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#0b0f26', strokeThickness: 3,
+    }).setOrigin(0.5)).setVisible(false);
 
     this.killText = fix(scene.add.text(W - 16, 18, '', { fontFamily: FONT, fontSize: '15px', color: '#b9a6e8' }).setOrigin(1, 0));
     this.levelText = fix(scene.add.text(W - 16, 38, '', { fontFamily: FONT, fontSize: '15px', fontStyle: 'bold', color: '#bff0ff' })
@@ -92,15 +99,29 @@ export class Hud {
     this.set('realm', this.realmText, `경지 · ${realm.name}`);
     this.realmText.setColor(`#${realm.color.toString(16).padStart(6, '0')}`);
 
-    // 남은 시간 (보스까지). 보스 시간이 지나면 '요황' (3b에서 보스 체력 막대로 바뀜)
-    const left = BALANCE.waves.bossAtSec * 1000 - now;
-    this.set('time', this.timeText, left > 0 ? formatTime(left + 999) : '요황');
+    // 남은 시간 (요황까지). 요황이 나오면 체력 막대 + 봉인석 붕괴까지 남은 시간
+    const king = sc.bosses.king;
+    const bossOn = !!king && (king.alive || sc.bosses.done);
+    this.timeText.setVisible(!bossOn);
+    this.bossBg.setVisible(bossOn);
+    this.bossFill.setVisible(bossOn);
+    this.bossName.setVisible(bossOn);
     const wv = sc.waves.index;
     for (let i = 0; i < this.waveCells.length; i++) {
       const cw = WAVE_W / this.waveCells.length - 2;
       this.waveCells[i].width = i < wv ? cw : i === wv ? cw * sc.waves.progress(now) : 0;
     }
-    this.set('wave', this.waveText, `웨이브 ${wv + 1}`);
+    if (bossOn) {
+      this.bossFill.width = BOSS_W * Math.max(0, king.hp / king.maxHp);
+      this.bossFill.fillColor = sc.bosses.enraged ? 0xff5a3c : 0xd94a3a;
+      this.set('bossName', this.bossName, sc.bosses.enraged ? '요황 · 광폭' : '요황');
+      const t = Math.max(0, sc.bosses.kingTimeLeft(now));
+      this.set('wave', this.waveText, `봉인석 붕괴까지 ${formatTime(t + 999)}`);
+      this.waveText.setColor(t < 30000 ? '#ff9a6a' : '#b9a6e8');
+    } else {
+      this.set('time', this.timeText, formatTime(BALANCE.waves.bossAtSec * 1000 - now + 999));
+      this.set('wave', this.waveText, `웨이브 ${wv + 1}`);
+    }
 
     this.set('kills', this.killText, `처치 ${sc.stats.kills}`);
     this.set('level', this.levelText, `Lv ${sc.leveling.level}`);

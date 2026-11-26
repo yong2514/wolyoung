@@ -51,6 +51,7 @@ export const WAVES = {
     { label: '숨 고르기', rate: 1.3, mix: { chaser: 0.6, splitter: 0.2, shield: 0.2 }, chests: 2 },
     { label: '요괴의 물결', rate: 6.0, mix: { chaser: 0.4, charger: 0.15, ranged: 0.15, shield: 0.15, bomber: 0.15 }, elites: [5, 20] },
     { label: '마지막 고비', rate: 7.5, mix: { chaser: 0.35, charger: 0.15, ranged: 0.15, splitter: 0.1, shield: 0.1, bomber: 0.15 }, elites: [3, 15, 25] },
+    { label: '요황 출현', rate: 1.2, mix: { chaser: 0.8, ranged: 0.2 }, boss: true }, // 웨이브 8: 보스전 (요괴는 적게)
   ],
 };
 

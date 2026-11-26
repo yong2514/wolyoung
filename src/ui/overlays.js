@@ -17,12 +17,13 @@ export function formatTime(ms) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** 게임오버: "다시 도전"을 가장 크게, 엄지 자리에 */
+/** 판의 끝(쓰러짐·봉인 성공·봉인석 붕괴): "다시 도전"을 가장 크게, 엄지 자리에. 결과 화면은 5단계에서 */
 export function showGameOver(scene, info, onRetry) {
   const parts = [dim(scene, 0.0)];
   scene.tweens.add({ targets: parts[0], fillAlpha: 0.75, duration: 400 });
-  parts.push(label(scene, H * 0.3, '쓰러졌다…', '40px'));
-  parts.push(label(scene, H * 0.3 + 60, `버틴 시간 ${formatTime(info.timeMs)}  ·  처치 ${info.kills}`, '18px', '#b9a6e8'));
+  parts.push(label(scene, H * 0.3, info.title ?? '쓰러졌다…', '40px', info.color ?? '#dfe4f2'));
+  if (info.sub) parts.push(label(scene, H * 0.3 + 48, info.sub, '17px', '#dfe4f2'));
+  parts.push(label(scene, H * 0.3 + (info.sub ? 86 : 60), `버틴 시간 ${formatTime(info.timeMs)}  ·  처치 ${info.kills}`, '18px', '#b9a6e8'));
   parts.push(makeButton(scene, W / 2, H - 140, W - 60, 88, '다시 도전', onRetry, { fontSize: '32px', delayMs: TAP_DELAY }));
   return { destroy() { parts.forEach((p) => p.destroy()); } };
 }

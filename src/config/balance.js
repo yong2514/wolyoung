@@ -2,6 +2,7 @@
 
 import { SPELL_BALANCE, SUPPORT_BALANCE, CARD_BALANCE } from './balance_spells.js';
 import { ENEMY_TYPES, ELITE, CHEST, WAVES, REALMS } from './balance_waves.js';
+import { BOSS_BALANCE } from './balance_boss.js';
 
 export const BALANCE = {
   /** 첫 판·2판·3판 난이도 비율 (요괴 체력과 수에 곱한다). 4판부터는 1.0 — 4단계에서 사용 */
@@ -62,6 +63,7 @@ export const BALANCE = {
   waves: WAVES,           // 웨이브 7개 (나오는 수·종류·정예·보물상자) → balance_waves.js
   realms: REALMS,         // 경지 돌파 → balance_waves.js
   chest: CHEST,           // 보물상자 → balance_waves.js
+  boss: BOSS_BALANCE,     // 요장·요황 → balance_boss.js
 
   spawn: {
     ringMargin: 60,       // 화면 밖 이만큼 떨어진 곳에서 나옴

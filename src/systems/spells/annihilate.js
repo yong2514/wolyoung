@@ -1,3 +1,4 @@
+import { BALANCE } from '../../config/balance.js';
 import { sfx } from '../audio.js';
 import { SkillButton } from '../../ui/skillButton.js';
 import { startTargeting } from '../../ui/targeting.js';
@@ -36,7 +37,10 @@ export class Annihilate extends AttackSpell {
       const dx = e.x - x;
       const dy = e.y - y;
       const rr = r + e.radius;
-      if (dx * dx + dy * dy <= rr * rr) { sc.enemies.kill(e); n++; }
+      if (dx * dx + dy * dy > rr * rr) continue;
+      if (e.def.boss) sc.enemies.hit(e, e.maxHp * BALANCE.boss.annihilateRatio, sc.clock.now); // 보스는 큰 피해만
+      else sc.enemies.kill(e);
+      n++;
     }
     const fx = sc.effects;
     fx.flash('ring', x, y, { life: 500, scale: (r / 32) * 0.3, scaleTo: (r / 32) * 1.15, tint: 0xe6dcff, depth: 40 });
