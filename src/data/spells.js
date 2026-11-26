@@ -5,7 +5,11 @@ export const SPELLS = {
   flyingSword: { name: '비검', kind: 'attack', desc: '가장 가까운 적을 꿰뚫는 검을 날린다.' },
   thunder: { name: '뇌부', kind: 'attack', desc: '화면 안 요괴에게 무작위로 낙뢰를 떨어뜨린다.' },
   lotus: { name: '연화진', kind: 'attack', desc: '선 자리에 연꽃 장판을 펼쳐 안의 요괴를 계속 태운다.' },
-  guard: { name: '호신강기', kind: 'attack', desc: '몸 주위를 도는 기운 구슬이 닿는 요괴를 쳐낸다.' },
+  guard: {
+    name: '호신강기',
+    kind: 'attack',
+    desc: `기운 구슬 2개가 몸 주위를 돌며 요괴를 쳐낸다. 구슬은 ${BALANCE.spells.guard.hitsPerOrb}번 부딪치면 깨진다.`,
+  },
   moveSpeed: { name: '경신술', kind: 'support', desc: '이동 속도 +10%' },
   attackSpeed: { name: '속법', kind: 'support', desc: '모든 공격 법술 간격 -8%' },
   maxHp: { name: '금강체', kind: 'support', desc: '최대 체력 +20 (늘어난 만큼 회복)' },
@@ -26,6 +30,8 @@ function fmt(name, v) {
 export function upgradeText(key, from, to) {
   const def = SPELLS[key];
   if (def.kind === 'support') return def.desc;
+  if (key === 'guard') return `구슬 ${BALANCE.spells.guard.count[from - 1]}개→${BALANCE.spells.guard.count[to - 1]}개, 모두 새것으로`
+    + ` · 피해 ${BALANCE.spells.guard.damage[from - 1]}→${BALANCE.spells.guard.damage[to - 1]}`;
   const cfg = BALANCE.spells[key];
   const parts = [];
   for (const [name, label] of Object.entries(STAT_LABELS)) {

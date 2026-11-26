@@ -39,6 +39,20 @@ export class SpellBook {
     }
   }
 
+  /** 법술 잃기 (호신강기 구슬이 모두 깨졌을 때). 칸이 비고, 카드로 다시 얻을 수 있다 */
+  forget(key) {
+    delete this.levels[key];
+    this.order = this.order.filter((k) => k !== key);
+    const i = this.attacks.findIndex((a) => a.key === key);
+    if (i >= 0) {
+      this.attacks[i].destroy?.();
+      this.attacks.splice(i, 1);
+    }
+  }
+
+  /** 이 법술의 최대 단계 (법술마다 다를 수 있음) */
+  maxLevel(key) { return BALANCE.spells[key]?.maxLevel ?? BALANCE.spells.maxLevel; }
+
   applySupports() {
     const S = BALANCE.supports;
     const p = this.scene.player;
@@ -50,6 +64,7 @@ export class SpellBook {
   }
 
   update(dt, now) {
-    for (let i = 0; i < this.attacks.length; i++) this.attacks[i].update(dt, now);
+    // 뒤에서부터: update 중에 법술을 잃어도(forget) 안전
+    for (let i = this.attacks.length - 1; i >= 0; i--) this.attacks[i].update(dt, now);
   }
 }

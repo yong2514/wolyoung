@@ -22,13 +22,12 @@ function option(book, key) {
 }
 
 export function rollCards(book, rng, n = 3) {
-  const maxL = BALANCE.spells.maxLevel;
   const slots = BALANCE.spells.slots;
   const groups = new Map(); // 지금 단계 → 법술들
   for (const key of Object.keys(SPELLS)) {
     const L = book.level(key);
     const kind = SPELLS[key].kind;
-    if (L >= maxL) continue;
+    if (L >= book.maxLevel(key)) continue;
     if (L === 0 && book.count(kind) >= slots[kind]) continue;
     if (!groups.has(L)) groups.set(L, []);
     groups.get(L).push(key);
