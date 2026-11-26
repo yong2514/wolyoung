@@ -25,6 +25,7 @@ export class DebugPanel {
     btn(godLabel(), (b) => { scene.god = !scene.god; b.textContent = godLabel(); });
     btn('잡귀 150', () => scene.enemies.fill(150 - scene.enemies.count, scene.clock.now));
     btn('+30초', () => { scene.clock.now += 30000; });
+    btn('레벨업', () => { scene.leveling.pending++; });
     btn('체력 회복', () => { scene.player.hp = scene.player.maxHp; });
     btn('새 판', () => scene.scene.restart());
     const fold = btn('접기', () => {

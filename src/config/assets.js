@@ -6,6 +6,11 @@ export const IMAGES = {
   player: null,   // 월영
   jabgwi: null,   // 잡귀
   sword: null,    // 비검
+  orb: null,      // 영기 구슬
+  bolt: null,     // 뇌부 낙뢰
+  ring: null,     // 둥근 빛 고리
+  lotus: null,    // 연화진 장판
+  guardOrb: null, // 호신강기 구슬
 };
 
 /** 효과음 목록. null이면 합성음을 쓴다. */
@@ -15,4 +20,9 @@ export const SOUNDS = {
   kill: null,     // 요괴 처치
   hurt: null,     // 플레이어 맞음
   gameover: null, // 쓰러짐
+  pickup: null,   // 영기 구슬 먹음
+  levelup: null,  // 레벨 업
+  pick: null,     // 카드 고름
+  thunder: null,  // 뇌부 낙뢰
+  lotus: null,    // 연화진 펼침
 };

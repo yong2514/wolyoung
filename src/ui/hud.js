@@ -16,6 +16,11 @@ export class Hud {
       fontFamily: FONT, fontSize: '24px', fontStyle: 'bold', color: '#dfe4f2',
     }).setOrigin(0.5, 0));
     this.killText = fix(scene.add.text(W - 16, 18, '', { fontFamily: FONT, fontSize: '15px', color: '#b9a6e8' }).setOrigin(1, 0));
+    this.levelText = fix(scene.add.text(W - 16, 38, '', { fontFamily: FONT, fontSize: '15px', fontStyle: 'bold', color: '#bff0ff' })
+      .setOrigin(1, 0));
+    // 영기 막대: 화면 맨 위 가로줄
+    fix(scene.add.rectangle(0, 0, W, 5, 0x0b0f26, 0.9).setOrigin(0));
+    this.xpBar = fix(scene.add.rectangle(0, 0, 0, 5, 0x7fd8ff, 1).setOrigin(0));
 
     // 일시정지 버튼: 버튼은 화면 아래 60% 안 (오른쪽 가장자리, 왼손 모드면 왼쪽)
     const px = settings.leftHand ? 30 : W - 30;
@@ -44,5 +49,7 @@ export class Hud {
     this.set('hp', this.hpText, `${Math.ceil(p.hp)} / ${p.maxHp}`);
     this.set('time', this.timeText, formatTime(sc.clock.now));
     this.set('kills', this.killText, `처치 ${sc.stats.kills}`);
+    this.set('level', this.levelText, `Lv ${sc.leveling.level}`);
+    this.xpBar.width = W * sc.leveling.ratio;
   }
 }

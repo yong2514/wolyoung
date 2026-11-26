@@ -31,6 +31,42 @@ export class BootScene extends Phaser.Scene {
       g.fillPoints([{ x: 6, y: 4 }, { x: 12, y: 1 }, { x: 32, y: 4 }, { x: 12, y: 7 }], true);
     });
     tex('spark', 8, 8, (g) => { g.fillStyle(0xffffff, 1); g.fillCircle(4, 4, 4); });
+    // 영기 구슬: 푸른 마름모
+    tex('orb', 14, 14, (g) => {
+      g.fillStyle(0x7fd8ff, 0.35); g.fillCircle(7, 7, 7);
+      g.fillStyle(0xbff0ff, 1);
+      g.fillPoints([{ x: 7, y: 1 }, { x: 12, y: 7 }, { x: 7, y: 13 }, { x: 2, y: 7 }], true);
+    });
+    // 뇌부 낙뢰: 위에서 내려오는 지그재그 (아래 끝이 기준점)
+    tex('bolt', 30, 220, (g) => {
+      const pts = [[16, 0], [8, 50], [20, 90], [6, 140], [18, 180], [15, 220]];
+      g.lineStyle(7, 0x8fb8ff, 0.35);
+      g.strokePoints(pts.map(([x, y]) => ({ x, y })));
+      g.lineStyle(3, 0xffffff, 1);
+      g.strokePoints(pts.map(([x, y]) => ({ x, y })));
+    });
+    // 빛 고리 (반지름 32 기준)
+    tex('ring', 68, 68, (g) => {
+      g.lineStyle(4, 0xffffff, 1); g.strokeCircle(34, 34, 31);
+      g.fillStyle(0xffffff, 0.18); g.fillCircle(34, 34, 30);
+    });
+    // 연화진: 꽃잎 8장 (반지름 64 기준)
+    tex('lotus', 128, 128, (g) => {
+      g.fillStyle(0xa77ff0, 0.28); g.fillCircle(64, 64, 63);
+      g.lineStyle(2, 0xd4b8ff, 0.9); g.strokeCircle(64, 64, 62);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        g.fillStyle(0xe4c4ff, 0.55);
+        g.fillEllipse(64 + Math.cos(a) * 34, 64 + Math.sin(a) * 34, 26, 26);
+      }
+      g.fillStyle(0xf0eaff, 0.6); g.fillCircle(64, 64, 14);
+    });
+    // 호신강기 구슬
+    tex('guardOrb', 26, 26, (g) => {
+      g.fillStyle(0x8fb8ff, 0.3); g.fillCircle(13, 13, 13);
+      g.fillStyle(0xe6eeff, 1); g.fillCircle(13, 13, 8);
+      g.fillStyle(0x8fb8ff, 1); g.fillCircle(11, 11, 3);
+    });
     // 바닥 무늬: 움직이는 느낌이 나도록 옅은 점과 선
     tex('bgtile', 96, 96, (g) => {
       g.fillStyle(0x141a3a, 1); g.fillRect(0, 0, 96, 96);

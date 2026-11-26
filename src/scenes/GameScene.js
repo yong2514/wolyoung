@@ -8,18 +8,22 @@ import { SpatialGrid } from '../systems/grid.js';
 import { Effects } from '../systems/effects.js';
 import { EnemySystem } from '../systems/enemies.js';
 import { Player } from '../systems/player.js';
-import { FlyingSword } from '../systems/weapons.js';
+import { SpellBook } from '../systems/spellbook.js';
+import { Orbs } from '../systems/orbs.js';
+import { Leveling } from '../systems/leveling.js';
+import { rollCards } from '../systems/cards.js';
 import { PerfMonitor } from '../systems/perf.js';
 import { AutoPlayer } from '../systems/autoplay.js';
 import { sfx } from '../systems/audio.js';
 import { Joystick } from '../ui/joystick.js';
 import { Hud } from '../ui/hud.js';
 import { DebugPanel } from '../ui/debug.js';
+import { showCards } from '../ui/cards.js';
 import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
-// 한 판. state: play(진행) · paused(일시정지) · countdown(3초 세기) · over(끝)
+// 한 판. state: play(진행) · card(카드 고르기) · paused(일시정지) · countdown(3초 세기) · over(끝)
 export class GameScene extends Phaser.Scene {
   constructor() { super('Game'); }
 
@@ -27,10 +31,11 @@ export class GameScene extends Phaser.Scene {
     this.seed = PARAMS.seed ?? newSeed();
     this.rng = new Rng(this.seed);
     this.fxRng = this.rng.fork('fx');
+    this.cardRng = this.rng.fork('cards'); // 카드 순서 전용 → 같은 시드면 같은 카드
     this.clock = new GameClock();
     this.god = PARAMS.god;
     this.state = 'play';
-    this.stats = { kills: 0, maxEnemies: 0 };
+    this.stats = { kills: 0, maxEnemies: 0, firstCardMs: null };
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
     const cell = BALANCE.limits.gridCell;
@@ -39,7 +44,10 @@ export class GameScene extends Phaser.Scene {
     this.effects = new Effects(this);
     this.player = new Player(this);
     this.enemies = new EnemySystem(this);
-    this.sword = new FlyingSword(this);
+    this.orbs = new Orbs(this);
+    this.leveling = new Leveling();
+    this.book = new SpellBook(this);
+    this.book.learn(BALANCE.spells.startWith);
     this.joystick = new Joystick(this);
     this.hud = new Hud(this);
     this.perf = new PerfMonitor(this);
@@ -71,7 +79,8 @@ export class GameScene extends Phaser.Scene {
   update(time, delta) {
     if (this.state === 'play') {
       this.clock.feed(delta, PARAMS.speed);
-      while (this.state === 'play' && this.clock.take()) this.step(STEP);
+      while (this.state === 'play' && this.leveling.pending === 0 && this.clock.take()) this.step(STEP);
+      if (this.state === 'play' && this.leveling.pending > 0) this.openCards();
     }
     const cam = this.cameras.main;
     this.bg.tilePositionX = cam.scrollX;
@@ -91,12 +100,36 @@ export class GameScene extends Phaser.Scene {
     this.grid.reset(this.player.x - W / 2 - GRID_MARGIN, this.player.y - H / 2 - GRID_MARGIN);
     this.enemies.insertInto(this.grid);
     this.enemies.collide(now);
-    this.sword.update(dt, now);
+    this.book.update(dt, now);
+    this.orbs.update(dt);
     this.effects.update(dt);
     this.stats.maxEnemies = Math.max(this.stats.maxEnemies, this.enemies.count);
 
     if (this.player.hp <= 0) this.gameOver();
     else if (this.auto && now >= PARAMS.autoMax * 1000) this.finishAuto('시간 끝');
+  }
+
+  /** 레벨업: 시계를 멈추고 카드 3장 */
+  openCards() {
+    this.state = 'card';
+    this.joystick.reset();
+    if (this.stats.firstCardMs === null) this.stats.firstCardMs = this.clock.now;
+    sfx.play('levelup');
+    const p = this.player;
+    this.effects.flash('ring', p.x, p.y, { life: 400, scale: 0.5, scaleTo: 3, tint: 0xbff0ff, depth: 40 });
+    const cards = rollCards(this.book, this.cardRng);
+    const ui = showCards(this, cards, (i) => this.pickCard(cards[i]));
+    if (this.auto) this.time.delayedCall(BALANCE.cardLockMs + 50, () => { ui.destroy(); this.pickCard(cards[0]); });
+  }
+
+  pickCard(card) {
+    if (this.state !== 'card') return;
+    sfx.play('pick');
+    if (card.key === 'elixir') this.player.hp = Math.min(this.player.maxHp, this.player.hp + BALANCE.elixirHeal);
+    else this.book.learn(card.key);
+    this.leveling.pending--;
+    this.state = 'play';
+    // 남은 레벨업이 있으면 update에서 바로 다음 카드를 연다
   }
 
   pause(byHide) {
@@ -140,10 +173,13 @@ export class GameScene extends Phaser.Scene {
       maxEnemies: this.stats.maxEnemies,
       timeSec: Math.round(this.clock.now / 1000),
       kills: this.stats.kills,
+      level: this.leveling.level,
+      firstCardSec: this.stats.firstCardMs === null ? null : +(this.stats.firstCardMs / 1000).toFixed(1),
+      spells: this.book.order.map((k) => `${k}${this.book.level(k)}`).join(','),
       reason,
     };
     console.log(`[자동점검] 오류 ${r.errors}개, 도달 웨이브 ${r.wave}, 평균 프레임 ${r.avgFps}, 최대 요괴 ${r.maxEnemies}마리`
-      + ` (${reason}, ${r.timeSec}초, 처치 ${r.kills})`);
+      + ` (${reason}, ${r.timeSec}초, 처치 ${r.kills}, Lv ${r.level}, 첫 카드 ${r.firstCardSec}초, ${r.spells})`);
     w.result = r;
     showGameOver(this, { timeMs: this.clock.now, kills: this.stats.kills }, () => this.scene.restart());
   }

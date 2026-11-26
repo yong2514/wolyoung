@@ -1,0 +1,55 @@
+import { BALANCE } from '../config/balance.js';
+import { SPELLS } from '../data/spells.js';
+import { FlyingSword } from './spells/flyingSword.js';
+import { Thunder } from './spells/thunder.js';
+import { Lotus } from './spells/lotus.js';
+import { Guard } from './spells/guard.js';
+
+const ATTACK_CLASSES = { flyingSword: FlyingSword, thunder: Thunder, lotus: Lotus, guard: Guard };
+
+// 이 판에서 가진 법술과 단계. 공격 법술은 매 걸음 update, 보조 법술은 능력치에 반영.
+export class SpellBook {
+  constructor(scene) {
+    this.scene = scene;
+    this.levels = {};      // { 법술: 단계 }
+    this.order = [];       // 얻은 순서
+    this.attacks = [];     // 공격 법술 객체
+    this.damageMult = 1;   // 공격력 배율 (경지 돌파·동료 궁합에서 올림)
+    this.cooldownMult = 1; // 공격 간격 배율 (속법)
+  }
+
+  level(key) { return this.levels[key] || 0; }
+
+  count(kind) { return this.order.filter((k) => SPELLS[k].kind === kind).length; }
+
+  /** 법술 얻기 또는 한 단계 올리기 */
+  learn(key) {
+    const L = this.level(key) + 1;
+    if (L === 1) this.order.push(key);
+    this.levels[key] = L;
+    if (SPELLS[key].kind === 'attack') {
+      let spell = this.attacks.find((a) => a.key === key);
+      if (!spell) {
+        spell = new ATTACK_CLASSES[key](this.scene, this);
+        this.attacks.push(spell);
+      }
+      spell.setLevel(L);
+    } else {
+      this.applySupports();
+    }
+  }
+
+  applySupports() {
+    const S = BALANCE.supports;
+    const p = this.scene.player;
+    p.speed = BALANCE.player.speed * (1 + S.moveSpeed.perLevel * this.level('moveSpeed'));
+    this.cooldownMult = Math.max(0.3, 1 - S.attackSpeed.perLevel * this.level('attackSpeed'));
+    const maxHp = BALANCE.player.maxHp + S.maxHp.perLevel * this.level('maxHp');
+    if (maxHp > p.maxHp) p.hp += maxHp - p.maxHp;
+    p.maxHp = maxHp;
+  }
+
+  update(dt, now) {
+    for (let i = 0; i < this.attacks.length; i++) this.attacks[i].update(dt, now);
+  }
+}

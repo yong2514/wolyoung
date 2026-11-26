@@ -19,7 +19,7 @@ export class EnemySystem {
     this.near = [];
     this.pool = new Pool(() => ({
       sprite: scene.add.image(0, 0, 'jabgwi').setVisible(false).setDepth(10),
-      x: 0, y: 0, hp: 0, speed: 0, damage: 0, radius: 0, id: 0, flashUntil: 0, alive: false, inGrid: false, def: null,
+      x: 0, y: 0, hp: 0, speed: 0, damage: 0, radius: 0, id: 0, flashUntil: 0, guardNext: 0, alive: false, inGrid: false, def: null,
     }), BALANCE.limits.enemyCap + 60, BALANCE.limits.enemyCap);
   }
 
@@ -40,6 +40,7 @@ export class EnemySystem {
     e.id = this.nextId++;
     e.alive = true;
     e.flashUntil = 0;
+    e.guardNext = 0;
     e.sprite.setTexture(def.texture).setPosition(x, y).clearTint().setVisible(true);
     return e;
   }
@@ -164,6 +165,7 @@ export class EnemySystem {
     fx.shake('kill');
     sfx.play('kill');
     this.scene.stats.kills++;
+    this.scene.orbs.drop(e.x, e.y, e.def.orb ?? BALANCE.orbs.value);
     e.sprite.setVisible(false).clearTint();
     this.pool.release(e);
   }

@@ -13,6 +13,10 @@ export class Effects {
       () => ({ sprite: scene.add.image(0, 0, 'spark').setVisible(false).setDepth(30), x: 0, y: 0, vx: 0, vy: 0, life: 0, left: 0 }),
       BALANCE.limits.particles, 120,
     );
+    this.flashes = new Pool(
+      () => ({ sprite: scene.add.image(0, 0, 'spark').setVisible(false), life: 0, left: 0, alpha: 1, s0: 1, s1: 1, sx: 1, sy: 1 }),
+      60, 20,
+    );
     this.numbers = new Pool(
       () => ({
         text: scene.add.text(0, 0, '', {
@@ -22,6 +26,21 @@ export class Effects {
       }),
       BALANCE.limits.damageNumbers, BALANCE.limits.damageNumbers,
     );
+  }
+
+  /** 잠깐 보였다 사라지는 그림 (낙뢰, 고리 등). opts: life, tint, alpha, scale→scaleTo, scaleX/Y, originY, depth */
+  flash(key, x, y, opts = {}) {
+    const f = this.flashes.get();
+    if (!f) return;
+    f.life = f.left = opts.life ?? 250;
+    f.alpha = opts.alpha ?? 1;
+    f.s0 = opts.scale ?? 1;
+    f.s1 = opts.scaleTo ?? f.s0;
+    f.sx = opts.scaleX ?? 1;
+    f.sy = opts.scaleY ?? 1;
+    f.sprite.setTexture(key).setPosition(x, y).setOrigin(0.5, opts.originY ?? 0.5).setTint(opts.tint ?? 0xffffff)
+      .setAlpha(f.alpha).setDepth(opts.depth ?? 29).setRotation(opts.rotation ?? 0).setVisible(true);
+    f.sprite.setScale(f.s0 * f.sx, f.s0 * f.sy);
   }
 
   burst(x, y, tint, count) {
@@ -56,6 +75,15 @@ export class Effects {
       p.x += p.vx * s; p.y += p.vy * s;
       p.vx *= 0.92; p.vy *= 0.92;
       p.sprite.setPosition(p.x, p.y).setAlpha(p.left / p.life);
+    }
+    const fs = this.flashes.active;
+    for (let i = fs.length - 1; i >= 0; i--) {
+      const f = fs[i];
+      f.left -= dt;
+      if (f.left <= 0) { f.sprite.setVisible(false); this.flashes.release(f); continue; }
+      const k = f.left / f.life; // 1 → 0
+      const sc = f.s1 + (f.s0 - f.s1) * k;
+      f.sprite.setAlpha(f.alpha * k).setScale(sc * f.sx, sc * f.sy);
     }
     const ns = this.numbers.active;
     const life = BALANCE.feel.numberLifeMs;

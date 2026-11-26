@@ -11,7 +11,7 @@
 ## 명령어 (Node는 PATH에 없을 수 있음: `C:\Program Files\nodejs`를 PATH 앞에 붙여 실행)
 - `npm run dev` 개발 서버(같은 와이파이 휴대폰: http://<노트북 IP>:5173)
 - `npm run check` 빌드 + Playwright 점검(자동 플레이 한 판, 같은 시드 재현, 잡귀 150마리 평균 50프레임). 단계 끝에 반드시 통과
-- `node scripts/shot.mjs <png> "<?값>" <ms>` 빌드본 화면 사진(확인용). 모든 node를 끄는 taskkill은 쓰지 않는다(개발 서버도 꺼짐)
+- `node scripts/shot.mjs <png> "<?값>" <ms> ["S.book.learn('lotus')"]` 빌드본 화면 사진(확인용, S=게임 장면). 모든 node를 끄는 taskkill은 쓰지 않는다(개발 서버도 꺼짐)
 - `npm run build` → `dist/`. main에 push하면 GitHub Actions가 GitHub Pages로 배포(`.github/workflows/deploy.yml`)
 - 배포 주소: https://yong2514.github.io/wolyoung/ (Vite base `/wolyoung/`, vite.config.js). gh는 `C:\Program Files\GitHub CLI`
 
@@ -36,8 +36,10 @@
 - `src/config/` balance.js(밸런스), assets.js(이미지·소리 경로), display.js(화면 크기·색)
 - `src/data/` story.js(동료 대사), spells.js, enemies.js
 - `src/scenes/` BootScene(도형 그림 만들기) → GameScene(한 판: 상태 play/paused/countdown/over)
-- `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·흔들림·진동)·enemies·player·weapons·perf·autoplay
-- `src/ui/` joystick·hud·button·overlays(게임오버·일시정지·3초 세기)·debug(HTML 패널)
+- `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·flash·흔들림·진동)·enemies·player·perf·autoplay
+  - orbs(영기 구슬)·leveling(영기·레벨)·cards(카드 3장 뽑기, cardRng)·spellbook(가진 법술·보조 능력치)
+  - `spells/` base(단계별 수치 stat())·flyingSword·thunder·lotus·guard. 새 공격 법술 = 여기 클래스 + spellbook ATTACK_CLASSES + data/spells.js + balance
+- `src/ui/` joystick·hud·button·cards(레벨업 카드)·overlays(게임오버·일시정지·3초 세기)·debug(HTML 패널)
 - `scripts/check.mjs` 자동 점검, `docs/기획서.md` 기획 전문, `PROGRESS.md` 진행 상황
 
 ## 작업 방식

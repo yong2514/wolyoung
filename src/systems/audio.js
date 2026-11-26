@@ -11,6 +11,11 @@ const RECIPES = {
   kill: { type: 'triangle', f0: 600, f1: 1200, dur: 0.1, vol: 0.06 },
   hurt: { type: 'sawtooth', f0: 200, f1: 70, dur: 0.22, vol: 0.1, noise: 0.5 },
   gameover: { type: 'sine', f0: 440, f1: 110, dur: 0.9, vol: 0.14 },
+  pickup: { type: 'sine', f0: 1300, f1: 1900, dur: 0.05, vol: 0.03 },
+  levelup: { type: 'triangle', f0: 520, f1: 1560, dur: 0.35, vol: 0.12 },
+  pick: { type: 'triangle', f0: 780, f1: 1170, dur: 0.15, vol: 0.09 },
+  thunder: { type: 'sawtooth', f0: 1600, f1: 80, dur: 0.18, vol: 0.06, noise: 0.7 },
+  lotus: { type: 'sine', f0: 330, f1: 660, dur: 0.3, vol: 0.06 },
 };
 
 const LIMIT = { perSound: 4, total: 14, minGap: 0.035 }; // 같은 소리 동시 4개, 전체 14개, 같은 소리 간격 35ms
