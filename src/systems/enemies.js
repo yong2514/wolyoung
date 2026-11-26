@@ -1,6 +1,6 @@
 import { BALANCE } from '../config/balance.js';
 import { GAME_WIDTH as W, GAME_HEIGHT as H } from '../config/display.js';
-import { ENEMIES } from '../data/enemies.js';
+import { ENEMIES, topTier } from '../data/enemies.js';
 import { Pool } from './pool.js';
 import { sfx } from './audio.js';
 
@@ -34,7 +34,7 @@ export class EnemySystem {
     e.def = def;
     e.x = x; e.y = y;
     e.hp = def.hp * (1 + BALANCE.enemies.hpGrowthPerMin * minutes);
-    e.speed = def.speed * (1 + (this.rng.next() - 0.5) * def.speedJitter);
+    e.speed = def.speed * (1 + (this.rng.next() - 0.5) * BALANCE.enemies.speedJitter);
     e.damage = def.damage;
     e.radius = def.radius;
     e.id = this.nextId++;
@@ -53,6 +53,14 @@ export class EnemySystem {
     return { x: p.x + Math.cos(a) * RING, y: p.y + Math.sin(a) * RING };
   }
 
+  /** 내 레벨에 맞는 요괴 종류. 가끔(lowerTierChance) 한 단계 아래가 섞인다 */
+  pickKey() {
+    const tiers = BALANCE.enemies.tiers;
+    let t = topTier(this.scene.leveling.level);
+    if (this.rng.next() < BALANCE.enemies.lowerTierChance && t > 0) t--;
+    return tiers[t].key;
+  }
+
   updateSpawning(dt, now) {
     const sp = BALANCE.spawn;
     const rate = Math.min(sp.maxPerSec, sp.startPerSec + sp.growthPerSec * (now / 1000));
@@ -60,11 +68,11 @@ export class EnemySystem {
     while (this.spawnAcc >= 1) {
       this.spawnAcc -= 1;
       const pt = this.ringPoint(false);
-      this.spawn('jabgwi', pt.x, pt.y, now);
+      this.spawn(this.pickKey(), pt.x, pt.y, now);
     }
     while (this.count < Math.min(this.keepAtLeast, this.cap)) {
       const pt = this.ringPoint(false);
-      if (!this.spawn('jabgwi', pt.x, pt.y, now)) break;
+      if (!this.spawn(this.pickKey(), pt.x, pt.y, now)) break;
     }
   }
 
@@ -74,7 +82,7 @@ export class EnemySystem {
     for (let i = 0; i < n; i++) {
       const a = this.rng.next() * TAU;
       const d = this.rng.range(120, RING);
-      if (!this.spawn('jabgwi', p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, now)) break;
+      if (!this.spawn(this.pickKey(), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, now)) break;
     }
   }
 
@@ -165,7 +173,7 @@ export class EnemySystem {
     fx.shake('kill');
     sfx.play('kill');
     this.scene.stats.kills++;
-    this.scene.orbs.drop(e.x, e.y, e.def.orb ?? BALANCE.orbs.value); // 영기는 구슬을 주워야 오른다
+    this.scene.orbs.drop(e.x, e.y, e.def.orb); // 영기는 구슬을 주워야 오른다 (센 요괴일수록 큰 구슬)
     e.sprite.setVisible(false).clearTint();
     this.pool.release(e);
   }

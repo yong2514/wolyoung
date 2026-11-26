@@ -28,7 +28,10 @@ export class Hud {
     this.pauseBtn = scene.add.circle(px, py, 24, 0x0b0f26, 0.55).setStrokeStyle(2, 0xdfe4f2, 0.6)
       .setScrollFactor(0).setDepth(150).setInteractive();
     fix(scene.add.text(px, py, 'Ⅱ', { fontFamily: FONT, fontSize: '20px', color: '#dfe4f2' }).setOrigin(0.5));
-    this.pauseBtn.on('pointerup', () => scene.pause(false));
+    let pressed = false; // 버튼 위에서 눌렀다 뗀 경우에만 (조이스틱 손가락이 지나가다 떼면 무시)
+    this.pauseBtn.on('pointerdown', () => { pressed = true; });
+    this.pauseBtn.on('pointerout', () => { pressed = false; });
+    this.pauseBtn.on('pointerup', () => { if (pressed) { pressed = false; scene.pause(false); } });
 
     this.last = {};
   }

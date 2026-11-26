@@ -38,7 +38,8 @@
 - `src/scenes/` BootScene(도형 그림 만들기) → GameScene(한 판: 상태 play/paused/countdown/over)
 - `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·flash·흔들림·진동)·enemies·player·perf·autoplay
   - orbs(영기 구슬)·leveling(영기·레벨)·cards(카드 3장 뽑기, cardRng)·spellbook(가진 법술·보조 능력치)
-  - `spells/` base(단계별 수치 stat())·flyingSword·thunder·lotus·guard. 새 공격 법술 = 여기 클래스 + spellbook ATTACK_CLASSES + data/spells.js + balance
+  - `spells/` base(단계별 수치 stat())·flyingSword·thunder·lotus·guard·annihilate. 새 공격 법술 = 여기 클래스 + spellbook ATTACK_CLASSES + data/spells.js + balance
+  - 법술마다 최대 단계가 다를 수 있다(balance의 maxLevel → book.maxLevel(key)). 카드 3장은 같은 단계만(사용자 요청)
 - `src/ui/` joystick·hud·button·cards(레벨업 카드)·overlays(게임오버·일시정지·3초 세기)·debug(HTML 패널)
 - `scripts/check.mjs` 자동 점검, `docs/기획서.md` 기획 전문, `PROGRESS.md` 진행 상황
 

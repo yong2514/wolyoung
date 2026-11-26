@@ -4,8 +4,9 @@ import { FlyingSword } from './spells/flyingSword.js';
 import { Thunder } from './spells/thunder.js';
 import { Lotus } from './spells/lotus.js';
 import { Guard } from './spells/guard.js';
+import { Annihilate } from './spells/annihilate.js';
 
-const ATTACK_CLASSES = { flyingSword: FlyingSword, thunder: Thunder, lotus: Lotus, guard: Guard };
+const ATTACK_CLASSES = { flyingSword: FlyingSword, thunder: Thunder, lotus: Lotus, guard: Guard, annihilate: Annihilate };
 
 // 이 판에서 가진 법술과 단계. 공격 법술은 매 걸음 update, 보조 법술은 능력치에 반영.
 export class SpellBook {
@@ -16,6 +17,8 @@ export class SpellBook {
     this.attacks = [];     // 공격 법술 객체
     this.damageMult = 1;   // 공격력 배율 (경지 돌파·동료 궁합에서 올림)
     this.cooldownMult = 1; // 공격 간격 배율 (속법)
+    this.extraShots = 0;   // 날아가는 법술 추가 수 (연사결)
+    this.shotSpeedMult = 1; // 날아가는 속도 배율 (연사결)
   }
 
   level(key) { return this.levels[key] || 0; }
@@ -51,13 +54,15 @@ export class SpellBook {
   }
 
   /** 이 법술의 최대 단계 (법술마다 다를 수 있음) */
-  maxLevel(key) { return BALANCE.spells[key]?.maxLevel ?? BALANCE.spells.maxLevel; }
+  maxLevel(key) { return BALANCE.spells[key]?.maxLevel ?? BALANCE.supports[key]?.maxLevel ?? BALANCE.spells.maxLevel; }
 
   applySupports() {
     const S = BALANCE.supports;
     const p = this.scene.player;
     p.speed = BALANCE.player.speed * (1 + S.moveSpeed.perLevel * this.level('moveSpeed'));
     this.cooldownMult = Math.max(0.3, 1 - S.attackSpeed.perLevel * this.level('attackSpeed'));
+    this.extraShots = S.multiShot.perLevel * this.level('multiShot');           // 연사결: 날아가는 수 +
+    this.shotSpeedMult = 1 + S.multiShot.speedPerLevel * this.level('multiShot'); // 연사결: 속도 ×
     const maxHp = BALANCE.player.maxHp + S.maxHp.perLevel * this.level('maxHp');
     if (maxHp > p.maxHp) p.hp += maxHp - p.maxHp;
     p.maxHp = maxHp;

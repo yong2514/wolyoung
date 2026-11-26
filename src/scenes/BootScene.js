@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { makeEnemyTextures } from './enemyTextures.js';
 
 // 그림 대신 쓸 도형을 미리 그려 둔다 (나중에 그림 파일로 바꿀 때: config/assets.js)
 export class BootScene extends Phaser.Scene {
@@ -18,12 +19,7 @@ export class BootScene extends Phaser.Scene {
     tex('aura', 72, 72, (g) => {
       for (let r = 35; r > 16; r -= 3) { g.fillStyle(0xb9a6e8, 0.06); g.fillCircle(36, 36, r); }
     });
-    // 잡귀: 어두운 보라 몸 + 붉은 눈
-    tex('jabgwi', 30, 30, (g) => {
-      g.fillStyle(0x7a3d8f, 1); g.fillCircle(15, 15, 14);
-      g.fillStyle(0x3d1f52, 1); g.fillCircle(15, 16, 12);
-      g.fillStyle(0xff5a3c, 1); g.fillCircle(10, 13, 2.5); g.fillCircle(20, 13, 2.5);
-    });
+    makeEnemyTextures(tex); // 요괴 5단계
     // 비검: 오른쪽을 향한 은빛 검
     tex('sword', 32, 8, (g) => {
       g.fillStyle(0x8fb8ff, 0.45); g.fillRect(0, 3, 10, 2);

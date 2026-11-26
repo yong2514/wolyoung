@@ -11,7 +11,13 @@ export const SPELLS = {
     desc: `기운 구슬 ${BALANCE.spells.guard.count[0]}개가 몸 주위를 돌며 요괴를 쳐낸다. `
       + `구슬은 ${BALANCE.spells.guard.hitsPerOrb}번 부딪치면 깨진다.`,
   },
+  annihilate: {
+    name: '멸요인',
+    kind: 'attack',
+    desc: '오른쪽 「멸」 버튼 → 원을 끌어 옮기고 「발동」하면 원 안의 요괴를 모두 없앤다.',
+  },
   moveSpeed: { name: '경신술', kind: 'support', desc: '이동 속도 +10%' },
+  multiShot: { name: '연사결', kind: 'support', desc: '날아가는 법술(비검) 수 +1, 속도 +10%' },
   attackSpeed: { name: '속법', kind: 'support', desc: '모든 공격 법술 간격 -8%' },
   maxHp: { name: '금강체', kind: 'support', desc: '최대 체력 +20 (늘어난 만큼 회복)' },
 };

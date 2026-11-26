@@ -20,7 +20,7 @@ export class FlyingSword extends AttackSpell {
     const p = this.scene.player;
     const b = this.pool.get();
     if (!b) return;
-    const sp = this.stat('speed');
+    const sp = this.stat('speed') * this.book.shotSpeedMult;
     b.x = p.x; b.y = p.y;
     b.vx = Math.cos(angle) * sp;
     b.vy = Math.sin(angle) * sp;
@@ -38,7 +38,7 @@ export class FlyingSword extends AttackSpell {
       const target = sc.grid.nearest(p.x, p.y, this.stat('range'));
       if (target) {
         const a = Math.atan2(target.y - p.y, target.x - p.x);
-        const n = this.stat('count');
+        const n = this.stat('count') + this.book.extraShots;
         for (let i = 0; i < n; i++) this.fireOne(a + (i - (n - 1) / 2) * this.stat('spread'), now);
         sfx.play('shoot');
         this.nextAt = now + this.cooldown();

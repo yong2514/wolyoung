@@ -16,6 +16,7 @@ const RECIPES = {
   pick: { type: 'triangle', f0: 780, f1: 1170, dur: 0.15, vol: 0.09 },
   thunder: { type: 'sawtooth', f0: 1600, f1: 80, dur: 0.18, vol: 0.06, noise: 0.7 },
   lotus: { type: 'sine', f0: 330, f1: 660, dur: 0.3, vol: 0.06 },
+  annihilate: { type: 'sawtooth', f0: 900, f1: 60, dur: 0.6, vol: 0.14, noise: 0.6 },
 };
 
 const LIMIT = { perSound: 4, total: 14, minGap: 0.035 }; // 같은 소리 동시 4개, 전체 14개, 같은 소리 간격 35ms

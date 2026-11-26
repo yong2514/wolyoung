@@ -4,7 +4,11 @@
 
 export const IMAGES = {
   player: null,   // 월영
-  jabgwi: null,   // 잡귀
+  jabgwi: null,   // 잡귀 (요괴 1단계)
+  yagwi: null,    // 야귀 (2단계)
+  hyunggwi: null, // 흉귀 (3단계)
+  akgwi: null,    // 악귀 (4단계)
+  hyeolgwi: null, // 혈귀 (5단계)
   sword: null,    // 비검
   orb: null,      // 영기 구슬
   bolt: null,     // 뇌부 낙뢰
@@ -25,4 +29,5 @@ export const SOUNDS = {
   pick: null,     // 카드 고름
   thunder: null,  // 뇌부 낙뢰
   lotus: null,    // 연화진 펼침
+  annihilate: null, // 멸요인 발동
 };

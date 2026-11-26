@@ -53,9 +53,14 @@ export const BALANCE = {
       damage: [10, 12, 14],
       orbit: [58, 61, 64],    // 도는 반지름
       spin: [2.8, 3.0, 3.2],  // 1초에 도는 각도 (라디안)
-      hitCooldownMs: 450, // 같은 요괴를 다시 때리기까지 시간
+      hitCooldownMs: 450, // 같은 요괴를 다시 때리기까지 시간 (호신강기)
       knockback: 10,      // 맞은 요괴를 밀어내는 거리
       orbRadius: 11,      // 구슬 크기
+    },
+    annihilate: {         // 멸요인 (사용자 요청): 버튼 → 원을 옮김 → '발동'하면 원 안 요괴를 모두 없앤다
+      maxLevel: 3,
+      radius: [90, 110, 135],               // 원 크기
+      cooldownMs: [30000, 25000, 20000],    // 다시 쓰기까지 시간 (게임 시간)
     },
   },
 
@@ -64,6 +69,11 @@ export const BALANCE = {
     moveSpeed: { perLevel: 0.1 },     // 이동 속도 +10%씩
     attackSpeed: { perLevel: 0.08 },  // 공격 간격 -8%씩
     maxHp: { perLevel: 20 },          // 최대 체력 +20씩 (늘어난 만큼 회복)
+    multiShot: {                      // 연사결 (사용자 요청): 날아가는 법술(비검 등) 강화
+      maxLevel: 3,
+      perLevel: 1,                    // 한 번에 날아가는 수 +1씩
+      speedPerLevel: 0.1,             // 날아가는 속도 +10%씩
+    },
   },
   elixirHeal: 30,         // 고를 법술이 하나도 없을 때 나오는 '영약' 카드: 체력 회복량
 
@@ -85,13 +95,17 @@ export const BALANCE = {
   cardLockMs: 400,        // 카드가 뜬 뒤 이 시간 동안 터치를 받지 않음 (오터치 방지)
 
   enemies: {
-    jabgwi: {             // 잡귀: 플레이어를 똑바로 쫓아옴
-      hp: 20,             // 체력
-      speed: 62,          // 이동 속도
-      speedJitter: 0.2,   // 마리마다 속도를 ±10%씩 다르게
-      damage: 8,          // 닿았을 때 플레이어가 받는 피해
-      radius: 13,         // 몸 크기
-    },
+    // 플레이어를 똑바로 쫓아오는 요괴. 내 레벨이 fromLevel 이상이면 그 요괴가 나온다 (사용자 요청: 레벨이 오를수록 모양이 바뀌고 세진다)
+    // hp 체력 · speed 이동 속도 · damage 닿았을 때 피해 · radius 몸 크기 · orb 떨어뜨리는 영기
+    tiers: [
+      { key: 'jabgwi', name: '잡귀', fromLevel: 1, hp: 20, speed: 62, damage: 8, radius: 13, orb: 1 },
+      { key: 'yagwi', name: '야귀', fromLevel: 3, hp: 34, speed: 68, damage: 10, radius: 14, orb: 1 },
+      { key: 'hyunggwi', name: '흉귀', fromLevel: 5, hp: 55, speed: 74, damage: 13, radius: 15, orb: 2 },
+      { key: 'akgwi', name: '악귀', fromLevel: 7, hp: 85, speed: 80, damage: 16, radius: 17, orb: 2 },
+      { key: 'hyeolgwi', name: '혈귀', fromLevel: 10, hp: 125, speed: 86, damage: 20, radius: 19, orb: 3 },
+    ],
+    lowerTierChance: 0.3, // 이 확률로 한 단계 아래 요괴가 섞여 나옴
+    speedJitter: 0.2,     // 마리마다 속도를 ±10%씩 다르게
     hpGrowthPerMin: 0.3,  // 1분마다 새로 나오는 요괴 체력 +30%
   },
 
