@@ -17,7 +17,7 @@
 
 ## 기술 규칙 (기획서 12번 요약)
 - Phaser 3.90.0 고정, Arcade 물리만, JS ES 모듈, Vite. 기준 화면 390×844 세로, Scale FIT, safe-area 반영
-- 밸런스 수치는 전부 `src/config/balance.js`(+ 법술·카드는 `balance_spells.js`, 항목마다 한국어 설명). 코드에 숫자를 직접 쓰지 않는다
+- 밸런스 수치는 전부 `src/config/balance.js`(+ 법술·카드 `balance_spells.js`, 웨이브·요괴·경지 `balance_waves.js`). 코드에 숫자를 직접 쓰지 않는다
 - 무작위는 `src/systems/rng.js` 시드 난수 하나만. Math.random 금지
 - 시간은 게임 안 시계 하나(`systems/clock.js`, 일시정지·카드·느려지기 반영). 웨이브·쿨타임·무적에 Date.now 금지
 - 게임은 고정 걸음(STEP=1/60초)으로만 진행 → 같은 시드+같은 입력이면 같은 판. 화면 효과 난수는 `rng.fork('fx')`처럼 갈라 써서 게임 흐름에 영향 없게
@@ -35,7 +35,8 @@
 - `src/main.js` 게임 시작 설정
 - `src/config/` balance.js(밸런스), assets.js(이미지·소리 경로), display.js(화면 크기·색)
 - `src/data/` story.js(동료 대사), spells.js, enemies.js
-- `src/scenes/` BootScene(도형 그림 만들기) → GameScene(한 판: 상태 play/paused/countdown/over)
+- `src/scenes/` BootScene(도형 그림, enemyTextures) → GameScene(한 판) + levelUpFlow(카드·보관함·합일)
+- 요괴: enemies(풀·맞기·죽기)·enemyAI(행동·예고)·enemyBullets·waves(웨이브)·chests·realm(경지 돌파)
 - `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·flash·흔들림·진동)·enemies·player·perf·autoplay
   - orbs(영기 구슬)·leveling(영기·레벨)·cards(카드 3장 뽑기, cardRng)·spellbook(가진 법술·보조 능력치)
   - `spells/` base(단계별 수치 stat())·공격 9종 파일·fusions(합일 4종). 새 공격 법술 = 여기 클래스 + spellbook ATTACK_CLASSES + data/spells.js + balance_spells

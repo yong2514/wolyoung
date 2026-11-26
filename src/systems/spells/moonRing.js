@@ -47,6 +47,7 @@ export class MoonRing extends AttackSpell {
     const list = this.pool.active;
     for (let i = list.length - 1; i >= 0; i--) {
       const r = list[i];
+      r.px = r.x; r.py = r.y; // 움직이기 전 자리 = 날아온 쪽
       if (r.out) {
         r.x += r.vx * s;
         r.y += r.vy * s;
@@ -71,7 +72,7 @@ export class MoonRing extends AttackSpell {
         const rr = R + e.radius;
         if (dx * dx + dy * dy > rr * rr) continue;
         e.moonNext = now + hitCd;
-        sc.enemies.hit(e, r.damage, now);
+        sc.enemies.hit(e, r.damage, now, r.px, r.py); // 날아온 쪽 (방패귀)
       }
     }
   }

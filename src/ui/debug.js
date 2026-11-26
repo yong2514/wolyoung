@@ -1,4 +1,5 @@
 import { SPELLS, FUSIONS } from '../data/spells.js';
+import { BALANCE } from '../config/balance.js';
 
 // 디버그 패널 (?debug=1). 화면 위 HTML 버튼. 글자는 textContent로만 넣는다.
 // 웨이브 건너뛰기·즉시 레벨업·선옥·인연·첫 판 다시 보기는 해당 단계에서 붙인다.
@@ -6,7 +7,7 @@ export class DebugPanel {
   constructor(scene) {
     this.scene = scene;
     const root = document.createElement('div');
-    root.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left) + 4px);top:calc(env(safe-area-inset-top) + 56px);'
+    root.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left) + 4px);top:calc(env(safe-area-inset-top) + 96px);'
       + 'z-index:10;font:12px system-ui,sans-serif;color:#dfe4f2;background:rgba(11,15,38,.7);'
       + 'padding:4px;border-radius:6px;max-width:220px;user-select:none;';
     this.info = document.createElement('div');
@@ -26,7 +27,7 @@ export class DebugPanel {
     const godLabel = () => (scene.god ? '무적: 켜짐' : '무적: 꺼짐');
     btn(godLabel(), (b) => { scene.god = !scene.god; b.textContent = godLabel(); });
     btn('잡귀 150', () => scene.enemies.fill(150 - scene.enemies.count, scene.clock.now));
-    btn('+30초', () => { scene.clock.now += 30000; });
+    btn('다음 웨이브', () => { scene.clock.now = (scene.waves.index + 1) * BALANCE.waves.waveSec * 1000; });
     btn('레벨업', () => { scene.leveling.pending++; });
     // 합일 준비: 누를 때마다 다음 합일의 재료 두 법술을 최대로 올리고 레벨업 → 합일 카드가 나온다 (칸 제한 무시)
     let fi = 0;

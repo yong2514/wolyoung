@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BALANCE } from '../config/balance.js';
-import { GAME_WIDTH as W, GAME_HEIGHT as H, FONT } from '../config/display.js';
+import { GAME_WIDTH as W, GAME_HEIGHT as H } from '../config/display.js';
 import { SPELLS, FUSIONS } from '../data/spells.js';
 import { PARAMS } from '../systems/params.js';
 import { Rng, newSeed } from '../systems/rng.js';
@@ -8,20 +8,23 @@ import { GameClock, STEP } from '../systems/clock.js';
 import { SpatialGrid } from '../systems/grid.js';
 import { Effects } from '../systems/effects.js';
 import { EnemySystem } from '../systems/enemies.js';
+import { EnemyBullets } from '../systems/enemyBullets.js';
+import { Waves } from '../systems/waves.js';
+import { Chests } from '../systems/chests.js';
+import { Realm } from '../systems/realm.js';
 import { Player } from '../systems/player.js';
 import { SpellBook } from '../systems/spellbook.js';
 import { Orbs } from '../systems/orbs.js';
 import { Leveling } from '../systems/leveling.js';
-import { rollCards, stashCard } from '../systems/cards.js';
-import { StashButton, showStash } from '../ui/stash.js';
 import { PerfMonitor } from '../systems/perf.js';
 import { AutoPlayer } from '../systems/autoplay.js';
 import { sfx } from '../systems/audio.js';
 import { Joystick } from '../ui/joystick.js';
 import { Hud } from '../ui/hud.js';
+import { StashButton } from '../ui/stash.js';
 import { DebugPanel } from '../ui/debug.js';
-import { showCards } from '../ui/cards.js';
 import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
+import { openCards, openStash } from './levelUpFlow.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
@@ -37,7 +40,7 @@ export class GameScene extends Phaser.Scene {
     this.clock = new GameClock();
     this.god = PARAMS.god;
     this.state = 'play';
-    this.stats = { kills: 0, maxEnemies: 0, firstCardMs: null };
+    this.stats = { kills: 0, elites: 0, chests: 0, seonok: 0, maxEnemies: 0, firstCardMs: null };
     this.run = { refresh: BALANCE.cards.refreshPerRun, banish: BALANCE.cards.banishPerRun }; // 이 판에 남은 횟수
     this.stash = []; // 보관한 카드 { key, gain, rarity }
 
@@ -48,13 +51,17 @@ export class GameScene extends Phaser.Scene {
     this.effects = new Effects(this);
     this.player = new Player(this);
     this.enemies = new EnemySystem(this);
+    this.enemyBullets = new EnemyBullets(this);
     this.orbs = new Orbs(this);
+    this.chests = new Chests(this);
     this.leveling = new Leveling();
+    this.realm = new Realm(this);
+    this.waves = new Waves(this);
     this.book = new SpellBook(this);
     this.book.learn(BALANCE.spells.startWith);
     this.joystick = new Joystick(this);
     this.hud = new Hud(this);
-    this.stashBtn = new StashButton(this, () => this.openStash());
+    this.stashBtn = new StashButton(this, () => openStash(this));
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
@@ -82,11 +89,15 @@ export class GameScene extends Phaser.Scene {
 
   canMove() { return this.state === 'play' || this.state === 'countdown'; }
 
+  spellName(key) { return SPELLS[key].name; }
+
   update(time, delta) {
     if (this.state === 'play') {
+      this.realm.check(); // 돌파할 레벨이면 카드보다 먼저 돌파
       this.clock.feed(delta, PARAMS.speed);
-      while (this.state === 'play' && this.leveling.pending === 0 && this.clock.take()) this.step(STEP);
-      if (this.state === 'play' && this.leveling.pending > 0) this.openCards();
+      // 레벨업 카드는 돌파 연출이 끝난 뒤에 (돌파가 먼저)
+      while (this.state === 'play' && (this.leveling.pending === 0 || this.realm.breaking) && this.clock.take()) this.step(STEP);
+      if (this.state === 'play' && this.leveling.pending > 0 && !this.realm.breaking) openCards(this);
     }
     const cam = this.cameras.main;
     this.bg.tilePositionX = cam.scrollX;
@@ -102,96 +113,21 @@ export class GameScene extends Phaser.Scene {
     const now = this.clock.now;
     const move = this.auto ? this.auto.vector(dt) : this.joystick.vector;
     this.player.update(dt, move, now);
-    this.enemies.updateSpawning(dt, now);
+    this.waves.update(dt, now);
     this.enemies.move(dt, now);
     this.grid.reset(this.player.x - W / 2 - GRID_MARGIN, this.player.y - H / 2 - GRID_MARGIN);
     this.enemies.insertInto(this.grid);
     this.enemies.collide(now);
+    this.enemyBullets.update(dt, now);
     this.book.update(dt, now);
     this.orbs.update(dt);
+    this.chests.update(dt, now);
+    this.realm.check();
     this.effects.update(dt);
     this.stats.maxEnemies = Math.max(this.stats.maxEnemies, this.enemies.count);
 
     if (this.player.hp <= 0) this.gameOver();
     else if (this.auto && now >= PARAMS.autoMax * 1000) this.finishAuto('시간 끝');
-  }
-
-  /** 레벨업: 시계를 멈추고 카드 3장. again이면 새로고침·봉인 뒤 다시 뽑기 */
-  openCards(again = false) {
-    this.state = 'card';
-    this.joystick.reset();
-    if (this.stats.firstCardMs === null) this.stats.firstCardMs = this.clock.now;
-    if (!again) {
-      sfx.play('levelup');
-      const p = this.player;
-      this.effects.flash('ring', p.x, p.y, { life: 400, scale: 0.5, scaleTo: 3, tint: 0xbff0ff, depth: 40 });
-    }
-    const cards = rollCards(this.book, this.cardRng);
-    const ui = showCards(this, cards, {
-      refreshLeft: this.run.refresh,
-      banishLeft: this.run.banish,
-      onPick: (i) => this.pickCard(cards[i]),
-      onRefresh: () => { this.run.refresh--; this.openCards(true); },
-      keepLeft: BALANCE.cards.stashMax - this.stash.length,
-      onBanish: (i) => {
-        const c = cards[i];
-        if (c.kind === 'fusion' || c.kind === 'item') return false; // 합일·영약은 봉인 못 함
-        this.book.banned.add(c.key);
-        this.run.banish--;
-        ui.destroy();
-        this.openCards(true);
-        return true;
-      },
-      onKeep: (i) => { // 보관: 이번 레벨업은 카드를 보관함에 넣는 것으로 끝
-        const c = cards[i];
-        if (c.kind === 'fusion' || c.kind === 'item') return false;
-        this.stash.push({ key: c.key, gain: c.gain, rarity: c.rarity });
-        sfx.play('pick');
-        this.leveling.pending--;
-        this.state = 'play';
-        return true;
-      },
-    });
-    if (this.auto) this.time.delayedCall(BALANCE.cardLockMs + 50, () => { ui.destroy(); this.pickCard(cards[0]); });
-  }
-
-  pickCard(card) {
-    if (this.state !== 'card') return;
-    sfx.play(card.rarity === 'legend' ? 'levelup' : 'pick');
-    if (card.key === 'elixir') this.player.hp = Math.min(this.player.maxHp, this.player.hp + BALANCE.elixirHeal);
-    else if (card.kind === 'fusion') this.fuse(card.key);
-    else this.book.learn(card.key, card.to);
-    this.leveling.pending--;
-    this.state = 'play';
-    // 남은 레벨업이 있으면 update에서 바로 다음 카드를 연다
-  }
-
-  /** 보관함 열기 (게임 멈춤) → 카드를 고르면 지금 적용 */
-  openStash() {
-    if (this.state !== 'play' || !this.stash.length) return;
-    this.state = 'stash';
-    this.joystick.reset();
-    const cards = this.stash.map((item) => stashCard(this.book, item));
-    showStash(this, cards, (i) => {
-      const c = cards[i];
-      this.stash.splice(i, 1);
-      sfx.play(c.rarity === 'legend' ? 'levelup' : 'pick');
-      this.book.learn(c.key, c.to);
-      this.state = 'play';
-    }, () => { this.state = 'play'; });
-  }
-
-  /** 합일 연출: 금빛 고리 + 큰 글씨 */
-  fuse(key) {
-    this.book.fuse(key);
-    const p = this.player;
-    this.effects.flash('ring', p.x, p.y, { life: 700, scale: 0.3, scaleTo: 5, tint: 0xffd36a, depth: 40 });
-    this.effects.burst(p.x, p.y, 0xffd36a, 20);
-    this.effects.shake('hurt');
-    const t = this.add.text(W / 2, H * 0.32, `${SPELLS[key].name}!`, {
-      fontFamily: FONT, fontSize: '44px', fontStyle: 'bold', color: '#ffe7a8', stroke: '#3a3018', strokeThickness: 6,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(250);
-    this.tweens.add({ targets: t, alpha: 0, y: H * 0.28, delay: 900, duration: 500, onComplete: () => t.destroy() });
   }
 
   pause(byHide) {
@@ -228,20 +164,25 @@ export class GameScene extends Phaser.Scene {
   finishAuto(reason) {
     this.state = 'over';
     const w = window.__wolyoung;
+    const sec = (ms) => +(ms / 1000).toFixed(1);
     const r = {
       errors: w.errors,
-      wave: Math.min(8, Math.floor(this.clock.now / (BALANCE.run.waveSec * 1000)) + 1),
+      wave: this.waves.index + 1,
       avgFps: Math.round(this.perf.avg),
       maxEnemies: this.stats.maxEnemies,
       timeSec: Math.round(this.clock.now / 1000),
       kills: this.stats.kills,
+      elites: this.stats.elites,
+      chests: this.stats.chests,
       level: this.leveling.level,
-      firstCardSec: this.stats.firstCardMs === null ? null : +(this.stats.firstCardMs / 1000).toFixed(1),
+      firstCardSec: this.stats.firstCardMs === null ? null : sec(this.stats.firstCardMs),
+      realmSecs: this.realm.times.slice(1).map(sec), // 축기·금단·원영·화신 돌파 시각(초)
       spells: this.book.order.map((k) => `${k}${this.book.level(k)}`).join(','),
       reason,
     };
     console.log(`[자동점검] 오류 ${r.errors}개, 도달 웨이브 ${r.wave}, 평균 프레임 ${r.avgFps}, 최대 요괴 ${r.maxEnemies}마리`
-      + ` (${reason}, ${r.timeSec}초, 처치 ${r.kills}, Lv ${r.level}, 첫 카드 ${r.firstCardSec}초, ${r.spells})`);
+      + ` (${reason}, ${r.timeSec}초, 처치 ${r.kills}, 정예 ${r.elites}, 상자 ${r.chests}, Lv ${r.level}, 첫 카드 ${r.firstCardSec}초,`
+      + ` 돌파 ${r.realmSecs.join('/')}초, ${r.spells})`);
     w.result = r;
     showGameOver(this, { timeMs: this.clock.now, kills: this.stats.kills }, () => this.scene.restart());
   }

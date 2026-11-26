@@ -18,6 +18,10 @@ export const IMAGES = {
   fan: null,      // 청염 부채꼴
   talisman: null, // 부적진 부적
   moonRing: null, // 월륜
+  charger: null, ranged: null, splitter: null, splitling: null, shield: null, bomber: null, // 특수 요괴
+  warnLine: null, ebullet: null, eliteGlow: null, // 예고선·요괴 탄·정예 테두리
+  chest: null,    // 보물상자
+  pillar: null,   // 경지 돌파 빛기둥
 };
 
 /** 효과음 목록. null이면 합성음을 쓴다. */
@@ -35,5 +39,6 @@ export const SOUNDS = {
   annihilate: null, // 멸요인 발동 (월하봉마진도)
   frost: null,    // 빙결
   flame: null,    // 청염
-  boom: null,     // 부적 폭발
+  boom: null,     // 부적 폭발·폭귀 폭발
+  breakthrough: null, // 경지 돌파
 };

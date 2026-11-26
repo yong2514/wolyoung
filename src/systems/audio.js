@@ -20,6 +20,7 @@ const RECIPES = {
   frost: { type: 'sine', f0: 1800, f1: 900, dur: 0.25, vol: 0.05, noise: 0.2 },
   flame: { type: 'sawtooth', f0: 220, f1: 440, dur: 0.18, vol: 0.04, noise: 0.6 },
   boom: { type: 'square', f0: 160, f1: 40, dur: 0.25, vol: 0.08, noise: 0.8 },
+  breakthrough: { type: 'triangle', f0: 260, f1: 1040, dur: 1.2, vol: 0.18, chord: [1.25, 1.5, 2] },
 };
 
 const LIMIT = { perSound: 4, total: 14, minGap: 0.035 }; // 같은 소리 동시 4개, 전체 14개, 같은 소리 간격 35ms
@@ -77,6 +78,16 @@ class Sfx {
     o.connect(g);
     o.start(t);
     o.stop(t + r.dur + 0.02);
+
+    for (const k of r.chord ?? []) { // 화음 (경지 돌파)
+      const o2 = ctx.createOscillator();
+      o2.type = 'sine';
+      o2.frequency.setValueAtTime(r.f0 * k, t);
+      o2.frequency.exponentialRampToValueAtTime(r.f1 * k, t + r.dur);
+      o2.connect(g);
+      o2.start(t);
+      o2.stop(t + r.dur + 0.02);
+    }
 
     if (r.noise) {
       const n = ctx.createBufferSource();

@@ -28,7 +28,7 @@ export class BlueFlame extends AttackSpell {
       if (d > range + e.radius) continue;
       let da = Math.atan2(dy, dx) - dir;
       da = Math.atan2(Math.sin(da), Math.cos(da)); // -π~π
-      if (Math.abs(da) <= half + e.radius / Math.max(d, 1)) sc.enemies.hit(e, dmg, now);
+      if (Math.abs(da) <= half + e.radius / Math.max(d, 1)) sc.enemies.hit(e, dmg, now, p.x, p.y);
     }
     // 부채꼴 그림: 'fan'은 오른쪽으로 60°, 반지름 128
     sc.effects.flash('fan', p.x, p.y, {

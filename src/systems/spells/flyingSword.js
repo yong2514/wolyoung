@@ -63,7 +63,7 @@ export class FlyingSword extends AttackSpell {
         const r = e.radius + HIT_R;
         if (dx * dx + dy * dy > r * r) continue;
         b.hits.push(e.id);
-        sc.enemies.hit(e, b.damage, now);
+        sc.enemies.hit(e, b.damage, now, b.x - b.vx * 0.1, b.y - b.vy * 0.1); // 날아온 쪽 (방패귀)
         this.onHit(e, now);
         if (--b.pierce < 0) { this.free(b); break; }
       }

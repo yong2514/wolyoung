@@ -1,6 +1,7 @@
 // 모든 밸런스 수치를 여기 모은다. 시간 단위: ms(밀리초, 1000 = 1초), 거리 단위: 픽셀.
 
 import { SPELL_BALANCE, SUPPORT_BALANCE, CARD_BALANCE } from './balance_spells.js';
+import { ENEMY_TYPES, ELITE, CHEST, WAVES, REALMS } from './balance_waves.js';
 
 export const BALANCE = {
   /** 첫 판·2판·3판 난이도 비율 (요괴 체력과 수에 곱한다). 4판부터는 1.0 — 4단계에서 사용 */
@@ -54,12 +55,14 @@ export const BALANCE = {
     lowerTierChance: 0.3, // 이 확률로 한 단계 아래 요괴가 섞여 나옴
     speedJitter: 0.2,     // 마리마다 속도를 ±10%씩 다르게
     hpGrowthPerMin: 0.3,  // 1분마다 새로 나오는 요괴 체력 +30%
+    types: ENEMY_TYPES,   // 특수 요괴 5종 → balance_waves.js
+    elite: ELITE,         // 정예 → balance_waves.js
   },
+  waves: WAVES,           // 웨이브 7개 (나오는 수·종류·정예·보물상자) → balance_waves.js
+  realms: REALMS,         // 경지 돌파 → balance_waves.js
+  chest: CHEST,           // 보물상자 → balance_waves.js
 
   spawn: {
-    startPerSec: 1.5,     // 시작할 때 1초에 나오는 요괴 수
-    growthPerSec: 0.05,   // 1초 지날 때마다 늘어나는 양
-    maxPerSec: 14,        // 1초에 나오는 최대 수
     ringMargin: 60,       // 화면 밖 이만큼 떨어진 곳에서 나옴
     farDistance: 900,     // 플레이어와 이보다 멀어지면 앞쪽으로 다시 옮김
   },

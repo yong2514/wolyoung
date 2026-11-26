@@ -87,6 +87,21 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x9fb8ff, 0.35); g.fillCircle(17, 17, 17);
       g.fillStyle(0xeef3ff, 1); g.fillPoints(pts, true);
     });
+    // 보물상자: 짙은 나무 + 금테
+    tex('chest', 30, 24, (g) => {
+      g.fillStyle(0x4a3424, 1); g.fillRoundedRect(1, 4, 28, 19, 3);
+      g.fillStyle(0x6a4a30, 1); g.fillRoundedRect(1, 1, 28, 9, 3);
+      g.lineStyle(2, 0xffd36a, 1); g.strokeRoundedRect(1, 1, 28, 22, 3); g.lineBetween(1, 10, 29, 10);
+      g.fillStyle(0xffd36a, 1); g.fillRect(12, 8, 6, 6);
+    });
+    // 경지 돌파 빛기둥 (가운데가 밝은 세로 띠)
+    tex('pillar', 64, 256, (g) => {
+      for (let i = 0; i < 8; i++) {
+        const w = 64 - i * 8;
+        g.fillStyle(0xffffff, 0.08 + i * 0.05);
+        g.fillRect((64 - w) / 2, 0, w, 256);
+      }
+    });
     // 호신강기 구슬
     tex('guardOrb', 26, 26, (g) => {
       g.fillStyle(0x8fb8ff, 0.3); g.fillCircle(13, 13, 13);

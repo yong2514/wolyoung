@@ -43,6 +43,10 @@ try {
   const sig = (r) => r && `${r.timeSec}/${r.kills}/${r.maxEnemies}/${r.level}/${r.spells}/${r.reason}`;
   if (a && b && sig(a) !== sig(b)) problems.push(`[같은 시드] 결과가 다름: ${sig(a)} ≠ ${sig(b)}`);
   if (a && (a.firstCardSec === null || a.firstCardSec > 20)) problems.push(`[자동 플레이] 첫 카드 ${a.firstCardSec}초 (20초 안이어야 함)`);
+  // 웨이브 한 판 (무적): 7웨이브까지 가고, 60초 안에 축기 돌파해야 함
+  const wv = await runOnce('웨이브 한 판', '?debug=1&auto=1&god=1&speed=4&autoMax=212&seed=21', 240000);
+  if (wv && wv.wave < 7) problems.push(`[웨이브 한 판] 웨이브 ${wv.wave}까지만 감 (7이어야 함)`);
+  if (wv && !(wv.realmSecs[0] <= 60)) problems.push(`[웨이브 한 판] 축기 돌파 ${wv.realmSecs[0] ?? '없음'}초 (60초 안이어야 함)`);
   await runOnce('합일 4종', '?debug=1&auto=1&god=1&fusions=1&fill=100&speed=4&autoMax=40&seed=3', 120000);
   const perf = await runOnce('성능 150마리', '?debug=1&auto=1&god=1&fill=150&speed=1&autoMax=20&seed=7', 90000);
   if (perf && perf.avgFps < FPS_GOAL) problems.push(`[성능 150마리] 평균 프레임 ${perf.avgFps} (목표 ${FPS_GOAL} 이상)`);

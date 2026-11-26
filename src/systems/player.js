@@ -16,6 +16,7 @@ export class Player {
     this.hp = cfg.maxHp;
     this.invulnUntil = 0;
     this.aura = scene.add.image(0, 0, 'aura').setDepth(19);
+    this.auraScale = 1; // 경지가 오를수록 커짐 (realm.js)
     this.sprite = scene.add.image(0, 0, 'player').setDepth(20);
   }
 
@@ -29,7 +30,7 @@ export class Player {
       this.dirY = move.y / m;
     }
     this.sprite.setPosition(this.x, this.y);
-    this.aura.setPosition(this.x, this.y).setScale(1 + 0.08 * Math.sin(now / 250));
+    this.aura.setPosition(this.x, this.y).setScale(this.auraScale * (1 + 0.08 * Math.sin(now / 250)));
     // 맞은 뒤 무적 동안 깜빡임
     this.sprite.setAlpha(now < this.invulnUntil && Math.floor(now / 70) % 2 ? 0.35 : 1);
   }
@@ -41,7 +42,7 @@ export class Player {
 
   hurt(dmg, now) {
     const sc = this.scene;
-    if (sc.god || now < this.invulnUntil || this.hp <= 0) return;
+    if (sc.god || sc.realm.breaking || now < this.invulnUntil || this.hp <= 0) return; // 돌파 연출 중 무적
     this.hp = Math.max(0, this.hp - dmg);
     this.invulnUntil = now + BALANCE.player.hurtInvulnMs;
     sc.effects.number(this.x, this.y - 26, dmg, '#ff6b4a');
