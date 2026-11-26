@@ -1,5 +1,7 @@
 // 모든 밸런스 수치를 여기 모은다. 시간 단위: ms(밀리초, 1000 = 1초), 거리 단위: 픽셀.
 
+import { SPELL_BALANCE, SUPPORT_BALANCE, CARD_BALANCE } from './balance_spells.js';
+
 export const BALANCE = {
   /** 첫 판·2판·3판 난이도 비율 (요괴 체력과 수에 곱한다). 4판부터는 1.0 — 4단계에서 사용 */
   runDifficulty: [0.6, 0.75, 0.9],
@@ -17,64 +19,9 @@ export const BALANCE = {
     deadZone: 4,          // 이보다 적게 끌면 움직이지 않음
   },
 
-  // 법술 수치. [ ]로 된 값은 1~5단계 순서. 하나만 있는 값은 모든 단계 같음.
-  spells: {
-    maxLevel: 5,          // 같은 법술 최대 단계
-    slots: { attack: 5, support: 4 }, // 한 판에 가질 수 있는 법술 수
-    startWith: 'flyingSword', // 시작 법술
-
-    flyingSword: {        // 비검: 가장 가까운 적에게 날아가 꿰뚫는 검
-      damage: [12, 15, 18, 22, 27],        // 한 번 맞힐 때 피해
-      count: [1, 1, 2, 2, 3],              // 한 번에 날리는 검 수
-      pierce: [2, 2, 3, 3, 4],             // 꿰뚫는 횟수 (2 = 세 마리까지 맞힘)
-      cooldownMs: [600, 560, 520, 480, 420], // 발사 간격
-      speed: 540,         // 검이 날아가는 속도 (픽셀/초)
-      spread: 0.2,        // 검이 여러 개일 때 사이 각도 (라디안)
-      range: 420,         // 이 거리 안의 적만 노림
-      lifeMs: 1000,       // 검이 사라지기까지 시간
-    },
-    thunder: {            // 뇌부: 화면 안 무작위 요괴에게 낙뢰
-      damage: [30, 38, 46, 56, 70],
-      strikes: [1, 2, 2, 3, 4],            // 한 번에 떨어지는 낙뢰 수
-      radius: [36, 38, 42, 46, 52],        // 낙뢰 범위
-      cooldownMs: [1500, 1400, 1300, 1200, 1050],
-    },
-    lotus: {              // 연화진: 서 있던 자리에 연꽃 장판, 안의 요괴에게 계속 피해
-      damage: [6, 8, 10, 12, 15],          // 한 번 피해 (tickMs마다)
-      radius: [60, 66, 72, 80, 90],
-      durationMs: [3000, 3200, 3400, 3700, 4000], // 장판이 남아 있는 시간
-      cooldownMs: [3200, 3000, 2800, 2600, 2300],
-      tickMs: 400,        // 피해 주는 간격
-    },
-    guard: {              // 호신강기: 주위를 도는 기운 구슬. 부딪칠 때마다 닳아서 사라진다 (사용자 요청)
-      maxLevel: 3,        // 이 법술만 3단계까지
-      count: [1, 2, 3],   // 구슬 수 (첫 카드 1개, 두 번째 2개, 세 번째 3개)
-      hitsPerOrb: 10,     // 구슬 하나가 요괴와 이만큼 부딪치면 사라짐. 모두 사라지면 법술을 잃고 카드가 다시 나온다
-      damage: [10, 12, 14],
-      orbit: [58, 61, 64],    // 도는 반지름
-      spin: [2.8, 3.0, 3.2],  // 1초에 도는 각도 (라디안)
-      hitCooldownMs: 450, // 같은 요괴를 다시 때리기까지 시간 (호신강기)
-      knockback: 10,      // 맞은 요괴를 밀어내는 거리
-      orbRadius: 11,      // 구슬 크기
-    },
-    annihilate: {         // 멸요인 (사용자 요청): 버튼 → 원을 옮김 → '발동'하면 원 안 요괴를 모두 없앤다
-      maxLevel: 3,
-      radius: [90, 110, 135],               // 원 크기
-      cooldownMs: [30000, 25000, 20000],    // 다시 쓰기까지 시간 (게임 시간)
-    },
-  },
-
-  // 보조 법술: 단계마다 더해지는 양
-  supports: {
-    moveSpeed: { perLevel: 0.1 },     // 이동 속도 +10%씩
-    attackSpeed: { perLevel: 0.08 },  // 공격 간격 -8%씩
-    maxHp: { perLevel: 20 },          // 최대 체력 +20씩 (늘어난 만큼 회복)
-    multiShot: {                      // 연사결 (사용자 요청): 날아가는 법술(비검 등) 강화
-      maxLevel: 3,
-      perLevel: 1,                    // 한 번에 날아가는 수 +1씩
-      speedPerLevel: 0.1,             // 날아가는 속도 +10%씩
-    },
-  },
+  spells: SPELL_BALANCE,      // 법술 수치 → balance_spells.js
+  supports: SUPPORT_BALANCE,  // 보조 법술 → balance_spells.js
+  cards: CARD_BALANCE,        // 카드 등급·새로고침·봉인 → balance_spells.js
   elixirHeal: 30,         // 고를 법술이 하나도 없을 때 나오는 '영약' 카드: 체력 회복량
 
   // 영기 구슬과 레벨업: 요괴가 구슬을 떨어뜨리고, 주워야 영기가 오른다.

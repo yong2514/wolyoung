@@ -51,4 +51,8 @@ export class Lotus extends AttackSpell {
       }
     }
   }
+
+  destroy() {
+    for (const z of this.pool.active.slice()) { z.sprite.setVisible(false); this.pool.release(z); }
+  }
 }

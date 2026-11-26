@@ -17,6 +17,9 @@ const RECIPES = {
   thunder: { type: 'sawtooth', f0: 1600, f1: 80, dur: 0.18, vol: 0.06, noise: 0.7 },
   lotus: { type: 'sine', f0: 330, f1: 660, dur: 0.3, vol: 0.06 },
   annihilate: { type: 'sawtooth', f0: 900, f1: 60, dur: 0.6, vol: 0.14, noise: 0.6 },
+  frost: { type: 'sine', f0: 1800, f1: 900, dur: 0.25, vol: 0.05, noise: 0.2 },
+  flame: { type: 'sawtooth', f0: 220, f1: 440, dur: 0.18, vol: 0.04, noise: 0.6 },
+  boom: { type: 'square', f0: 160, f1: 40, dur: 0.25, vol: 0.08, noise: 0.8 },
 };
 
 const LIMIT = { perSound: 4, total: 14, minGap: 0.035 }; // 같은 소리 동시 4개, 전체 14개, 같은 소리 간격 35ms

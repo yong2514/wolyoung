@@ -57,6 +57,36 @@ export class BootScene extends Phaser.Scene {
       }
       g.fillStyle(0xf0eaff, 0.6); g.fillCircle(64, 64, 14);
     });
+    // 청염 부채꼴: 오른쪽으로 60°, 반지름 128 (왼쪽 가운데가 기준점)
+    tex('fan', 128, 148, (g) => {
+      const a = Math.PI / 6;
+      for (let r = 128; r > 10; r -= 14) {
+        g.fillStyle(0xbfe0ff, 0.12 + (1 - r / 128) * 0.25);
+        g.slice(0, 74, r, -a, a, false);
+        g.fillPath();
+      }
+    });
+    // 부적: 옅은 금빛 종이 + 남색 글씨 선
+    tex('talisman', 16, 24, (g) => {
+      g.fillStyle(0xf3e6b0, 1); g.fillRect(0, 0, 16, 24);
+      g.lineStyle(2, 0x2a3370, 1);
+      g.lineBetween(8, 3, 8, 21); g.lineBetween(4, 8, 12, 8); g.lineBetween(4, 15, 12, 15);
+    });
+    // 월륜: 은빛 초승달 고리
+    tex('moonRing', 34, 34, (g) => {
+      // 바깥 원호(반지름 15)와 안쪽 원호(중심을 옮긴 반지름 12)로 초승달 모양
+      const pts = [];
+      for (let i = 0; i <= 24; i++) {
+        const a = Math.PI * 0.15 + (i / 24) * Math.PI * 1.7;
+        pts.push({ x: 17 + Math.cos(a) * 15, y: 17 + Math.sin(a) * 15 });
+      }
+      for (let i = 24; i >= 0; i--) {
+        const a = Math.PI * 0.3 + (i / 24) * Math.PI * 1.4;
+        pts.push({ x: 21 + Math.cos(a) * 11, y: 17 + Math.sin(a) * 11 });
+      }
+      g.fillStyle(0x9fb8ff, 0.35); g.fillCircle(17, 17, 17);
+      g.fillStyle(0xeef3ff, 1); g.fillPoints(pts, true);
+    });
     // 호신강기 구슬
     tex('guardOrb', 26, 26, (g) => {
       g.fillStyle(0x8fb8ff, 0.3); g.fillCircle(13, 13, 13);

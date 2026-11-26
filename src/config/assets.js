@@ -15,6 +15,9 @@ export const IMAGES = {
   ring: null,     // 둥근 빛 고리
   lotus: null,    // 연화진 장판
   guardOrb: null, // 호신강기 구슬
+  fan: null,      // 청염 부채꼴
+  talisman: null, // 부적진 부적
+  moonRing: null, // 월륜
 };
 
 /** 효과음 목록. null이면 합성음을 쓴다. */
@@ -29,5 +32,8 @@ export const SOUNDS = {
   pick: null,     // 카드 고름
   thunder: null,  // 뇌부 낙뢰
   lotus: null,    // 연화진 펼침
-  annihilate: null, // 멸요인 발동
+  annihilate: null, // 멸요인 발동 (월하봉마진도)
+  frost: null,    // 빙결
+  flame: null,    // 청염
+  boom: null,     // 부적 폭발
 };

@@ -4,18 +4,23 @@ import { AttackSpell } from './base.js';
 // 호신강기: 몸 주위를 도는 기운 구슬. 같은 요괴는 hitCooldownMs마다 한 번만 때린다.
 // 구슬 하나는 요괴와 hitsPerOrb번 부딪치면 깨진다. 모두 깨지면 법술을 잃는다(카드로 다시 얻을 수 있음).
 export class Guard extends AttackSpell {
-  constructor(scene, book) {
-    super(scene, book, 'guard');
+  constructor(scene, book, key = 'guard', tint = null) {
+    super(scene, book, key);
     this.near = [];
     this.orbs = []; // { sprite, hitsLeft }
     this.angle = 0;
+    this.tint = tint; // 청염강기는 푸른 불꽃 색
   }
 
   /** 단계를 얻거나 올리면 구슬을 새것으로 모두 채운다 */
   setLevel(level) {
     super.setLevel(level);
     const n = this.stat('count');
-    while (this.orbs.length < n) this.orbs.push({ sprite: this.scene.add.image(0, 0, 'guardOrb').setDepth(24), hitsLeft: 0 });
+    while (this.orbs.length < n) {
+      const sprite = this.scene.add.image(0, 0, 'guardOrb').setDepth(24);
+      if (this.tint) sprite.setTint(this.tint).setScale(this.stat('orbRadius') / 11);
+      this.orbs.push({ sprite, hitsLeft: 0 });
+    }
     for (const o of this.orbs) {
       o.hitsLeft = this.stat('hitsPerOrb');
       o.sprite.setVisible(true).setAlpha(1);
@@ -57,6 +62,7 @@ export class Guard extends AttackSpell {
         e.x += (px / d) * kb;
         e.y += (py / d) * kb;
         sc.enemies.hit(e, dmg, now);
+        if (!Number.isFinite(maxHits)) continue; // 청염강기: 깨지지 않음
         orb.hitsLeft--;
         orb.sprite.setAlpha(0.35 + 0.65 * (orb.hitsLeft / maxHits)); // 닳을수록 흐려짐
         if (orb.hitsLeft <= 0) this.breakOrb(orb, ox, oy);

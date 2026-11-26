@@ -1,3 +1,5 @@
+import { SPELLS, FUSIONS } from '../data/spells.js';
+
 // 디버그 패널 (?debug=1). 화면 위 HTML 버튼. 글자는 textContent로만 넣는다.
 // 웨이브 건너뛰기·즉시 레벨업·선옥·인연·첫 판 다시 보기는 해당 단계에서 붙인다.
 export class DebugPanel {
@@ -26,6 +28,19 @@ export class DebugPanel {
     btn('잡귀 150', () => scene.enemies.fill(150 - scene.enemies.count, scene.clock.now));
     btn('+30초', () => { scene.clock.now += 30000; });
     btn('레벨업', () => { scene.leveling.pending++; });
+    // 합일 준비: 누를 때마다 다음 합일의 재료 두 법술을 최대로 올리고 레벨업 → 합일 카드가 나온다 (칸 제한 무시)
+    let fi = 0;
+    const fusionLabel = () => `합일 준비: ${SPELLS[FUSIONS[fi % FUSIONS.length]].name}`;
+    btn(fusionLabel(), (b) => {
+      const key = FUSIONS[fi % FUSIONS.length];
+      for (const part of SPELLS[key].fusion) {
+        scene.book.fusedParts.delete(part);
+        scene.book.learn(part, scene.book.maxLevel(part));
+      }
+      scene.leveling.pending++;
+      fi++;
+      b.textContent = fusionLabel();
+    });
     btn('체력 회복', () => { scene.player.hp = scene.player.maxHp; });
     btn('새 판', () => scene.scene.restart());
     const fold = btn('접기', () => {

@@ -41,6 +41,11 @@ export class EnemySystem {
     e.alive = true;
     e.flashUntil = 0;
     e.guardNext = 0;
+    e.moonNext = 0;
+    e.slowUntil = 0;
+    e.slowMult = 1;
+    e.stunUntil = 0;
+    e.tintState = 0;
     e.sprite.setTexture(def.texture).setPosition(x, y).clearTint().setVisible(true);
     return e;
   }
@@ -102,12 +107,34 @@ export class EnemySystem {
         continue;
       }
       const d = Math.sqrt(d2) || 1;
-      e.x += (dx / d) * e.speed * s;
-      e.y += (dy / d) * e.speed * s;
+      let sp = e.speed;
+      if (now < e.stunUntil) sp = 0; // 월하봉마진: 멈춤
+      else if (now < e.slowUntil) sp *= e.slowMult; // 빙결: 느려짐
+      e.x += (dx / d) * sp * s;
+      e.y += (dy / d) * sp * s;
       e.sprite.flipX = dx < 0;
-      if (e.flashUntil && now >= e.flashUntil) { e.flashUntil = 0; e.sprite.clearTint(); }
+      if (e.flashUntil && now >= e.flashUntil) e.flashUntil = 0;
+      this.updateTint(e, now);
     }
   }
+
+  /** 색: 맞음(하양) > 멈춤(연보라) > 느려짐(얼음색) > 원래. 바뀔 때만 칠한다 */
+  updateTint(e, now) {
+    const st = e.flashUntil ? 1 : now < e.stunUntil ? 2 : now < e.slowUntil ? 3 : 0;
+    if (st === e.tintState) return;
+    e.tintState = st;
+    if (st === 1) e.sprite.setTintFill(0xffffff);
+    else if (st === 2) e.sprite.setTint(0xd9ccff);
+    else if (st === 3) e.sprite.setTint(0x9fdcff);
+    else e.sprite.clearTint();
+  }
+
+  slow(e, mult, ms, now) {
+    e.slowMult = Math.min(e.slowUntil > now ? e.slowMult : 1, mult);
+    e.slowUntil = Math.max(e.slowUntil, now + ms);
+  }
+
+  stun(e, ms, now) { e.stunUntil = Math.max(e.stunUntil, now + ms); }
 
   insertInto(grid) {
     const list = this.pool.active;
@@ -157,12 +184,15 @@ export class EnemySystem {
   hit(e, dmg, now) {
     if (!e.alive) return false;
     const fx = this.scene.effects;
+    const dealt = Math.min(dmg, e.hp);
     e.hp -= dmg;
     fx.number(e.x, e.y - 16, Math.round(dmg));
     sfx.play('hit');
+    const ls = this.scene.book.lifesteal; // 흡혈공
+    if (ls) this.scene.player.heal(dealt * ls);
     if (e.hp <= 0) { this.kill(e); return true; }
-    e.sprite.setTintFill(0xffffff);
     e.flashUntil = now + BALANCE.feel.hitFlashMs;
+    this.updateTint(e, now);
     return false;
   }
 

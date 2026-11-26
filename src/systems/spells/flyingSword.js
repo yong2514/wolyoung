@@ -7,8 +7,8 @@ const HIT_R = 10; // 검의 부딪힘 반지름
 
 // 비검: 가장 가까운 적에게 날아가 꿰뚫는다
 export class FlyingSword extends AttackSpell {
-  constructor(scene, book) {
-    super(scene, book, 'flyingSword');
+  constructor(scene, book, key = 'flyingSword') {
+    super(scene, book, key);
     this.near = [];
     this.pool = new Pool(() => ({
       sprite: scene.add.image(0, 0, 'sword').setVisible(false).setDepth(25),
@@ -64,13 +64,21 @@ export class FlyingSword extends AttackSpell {
         if (dx * dx + dy * dy > r * r) continue;
         b.hits.push(e.id);
         sc.enemies.hit(e, b.damage, now);
+        this.onHit(e, now);
         if (--b.pierce < 0) { this.free(b); break; }
       }
     }
   }
 
+  /** 맞힐 때 덧붙는 효과 (뇌정만검이 낙뢰를 붙임) */
+  onHit() {}
+
   free(b) {
     b.sprite.setVisible(false);
     this.pool.release(b);
+  }
+
+  destroy() {
+    for (const b of this.pool.active.slice()) this.free(b);
   }
 }

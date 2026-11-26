@@ -34,6 +34,11 @@ export class Player {
     this.sprite.setAlpha(now < this.invulnUntil && Math.floor(now / 70) % 2 ? 0.35 : 1);
   }
 
+  heal(amount) {
+    if (this.hp <= 0) return;
+    this.hp = Math.min(this.maxHp, this.hp + amount);
+  }
+
   hurt(dmg, now) {
     const sc = this.scene;
     if (sc.god || now < this.invulnUntil || this.hp <= 0) return;

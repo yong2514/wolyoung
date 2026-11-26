@@ -38,7 +38,7 @@ export class Effects {
     f.s1 = opts.scaleTo ?? f.s0;
     f.sx = opts.scaleX ?? 1;
     f.sy = opts.scaleY ?? 1;
-    f.sprite.setTexture(key).setPosition(x, y).setOrigin(0.5, opts.originY ?? 0.5).setTint(opts.tint ?? 0xffffff)
+    f.sprite.setTexture(key).setPosition(x, y).setOrigin(opts.originX ?? 0.5, opts.originY ?? 0.5).setTint(opts.tint ?? 0xffffff)
       .setAlpha(f.alpha).setDepth(opts.depth ?? 29).setRotation(opts.rotation ?? 0).setVisible(true);
     f.sprite.setScale(f.s0 * f.sx, f.s0 * f.sy);
   }
