@@ -6,15 +6,15 @@ export const BALANCE = {
 
   player: {
     maxHp: 100,           // 시작 최대 체력
-    speed: 170,           // 이동 속도 (픽셀/초)
+    speed: 230,           // 이동 속도 (픽셀/초). 화면 폭 390 → 1초에 화면의 약 60%
     radius: 14,           // 몸 크기 (부딪힘 판정 반지름)
     hurtInvulnMs: 500,    // 맞은 뒤 무적 시간
   },
 
   joystick: {
     radius: 60,           // 조이스틱 바깥 원 반지름
-    fullAt: 0.6,          // 반지름의 이 비율만큼 끌면 최고 속도
-    deadZone: 6,          // 이보다 적게 끌면 움직이지 않음
+    fullAt: 0.3,          // 반지름의 이 비율만큼 끌면 최고 속도 (0.3 → 약 18px만 끌어도 최고 속도)
+    deadZone: 4,          // 이보다 적게 끌면 움직이지 않음
   },
 
   spells: {
