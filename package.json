@@ -1,0 +1,19 @@
+{
+  "name": "wolyoung",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "check": "vite build && node scripts/check.mjs"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1",
+    "vite": "8.4.0"
+  }
+}
