@@ -67,8 +67,14 @@ export class Talisman extends AttackSpell {
       const rr = r + e.radius;
       if (dx * dx + dy * dy <= rr * rr) sc.enemies.hit(e, dmg, now);
     }
-    sc.effects.flash('ring', t.x, t.y, { life: 300, scale: 0.3, scaleTo: r / 32, tint: 0xf3e6b0, depth: 27 });
-    sc.effects.burst(t.x, t.y, 0xf3e6b0, 6);
+    // 크게 터지는 연출 (사용자 요청): 두 겹 고리 + 가운데 섬광 + 많은 조각 + 살짝 흔들림
+    const fx = sc.effects;
+    fx.flash('ring', t.x, t.y, { life: 420, scale: 0.3, scaleTo: (r / 32) * 1.15, tint: 0xf3e6b0, depth: 27 });
+    fx.flash('ring', t.x, t.y, { life: 300, scale: 0.2, scaleTo: (r / 32) * 0.7, tint: 0xffffff, alpha: 0.9, depth: 27 });
+    fx.flash('aura', t.x, t.y, { life: 260, scale: 0.6, scaleTo: (r / 36) * 1.2, tint: 0xfff4d0, alpha: 1, depth: 27 });
+    fx.burst(t.x, t.y, 0xf3e6b0, 16);
+    fx.burst(t.x, t.y, 0xffffff, 6);
+    fx.shake('kill');
     sfx.play('boom');
     t.sprite.setVisible(false);
     this.pool.release(t);

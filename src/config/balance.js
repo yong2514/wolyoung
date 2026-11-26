@@ -46,7 +46,8 @@ export const BALANCE = {
     // 플레이어를 똑바로 쫓아오는 요괴. 내 레벨이 fromLevel 이상이면 그 요괴가 나온다 (사용자 요청: 레벨이 오를수록 모양이 바뀌고 세진다)
     // hp 체력 · speed 이동 속도 · damage 닿았을 때 피해 · radius 몸 크기 · orb 떨어뜨리는 영기
     tiers: [
-      { key: 'jabgwi', name: '잡귀', fromLevel: 1, hp: 20, speed: 62, damage: 8, radius: 13, orb: 1 },
+      // 잡귀: 비검 한 방(피해 12)에 죽게 (사용자 요청: 쾌감). noGrowth = 시간이 지나도 체력이 안 오름
+      { key: 'jabgwi', name: '잡귀', fromLevel: 1, hp: 12, noGrowth: true, speed: 62, damage: 8, radius: 13, orb: 1 },
       { key: 'yagwi', name: '야귀', fromLevel: 3, hp: 34, speed: 68, damage: 10, radius: 14, orb: 1 },
       { key: 'hyunggwi', name: '흉귀', fromLevel: 5, hp: 55, speed: 74, damage: 13, radius: 15, orb: 2 },
       { key: 'akgwi', name: '악귀', fromLevel: 7, hp: 85, speed: 80, damage: 16, radius: 17, orb: 2 },

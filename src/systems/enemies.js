@@ -37,7 +37,8 @@ export class EnemySystem {
     e.def = def;
     e.elite = elite;
     e.x = x; e.y = y;
-    e.hp = def.hp * (1 + BALANCE.enemies.hpGrowthPerMin * (now / 60000)) * this.hpMult * (elite ? E.hpMult : 1);
+    const growth = def.noGrowth && !elite ? 1 : 1 + BALANCE.enemies.hpGrowthPerMin * (now / 60000);
+    e.hp = def.hp * growth * this.hpMult * (elite ? E.hpMult : 1);
     e.speed = def.speed * (1 + (this.rng.next() - 0.5) * BALANCE.enemies.speedJitter);
     e.damage = def.damage * (elite ? E.damageMult : 1);
     e.radius = def.radius * (elite ? E.scale : 1);
