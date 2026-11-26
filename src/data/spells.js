@@ -8,7 +8,8 @@ export const SPELLS = {
   guard: {
     name: '호신강기',
     kind: 'attack',
-    desc: `기운 구슬 2개가 몸 주위를 돌며 요괴를 쳐낸다. 구슬은 ${BALANCE.spells.guard.hitsPerOrb}번 부딪치면 깨진다.`,
+    desc: `기운 구슬 ${BALANCE.spells.guard.count[0]}개가 몸 주위를 돌며 요괴를 쳐낸다. `
+      + `구슬은 ${BALANCE.spells.guard.hitsPerOrb}번 부딪치면 깨진다.`,
   },
   moveSpeed: { name: '경신술', kind: 'support', desc: '이동 속도 +10%' },
   attackSpeed: { name: '속법', kind: 'support', desc: '모든 공격 법술 간격 -8%' },
