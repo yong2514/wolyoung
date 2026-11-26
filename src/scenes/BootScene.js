@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { makeEnemyTextures } from './enemyTextures.js';
+import { makePlayerTexture } from './playerTexture.js';
 
 // 그림 대신 쓸 도형을 미리 그려 둔다 (나중에 그림 파일로 바꿀 때: config/assets.js)
 export class BootScene extends Phaser.Scene {
@@ -9,12 +10,7 @@ export class BootScene extends Phaser.Scene {
     const g = this.make.graphics({ x: 0, y: 0 }, false);
     const tex = (key, w, h, draw) => { g.clear(); draw(g); g.generateTexture(key, w, h); };
 
-    // 월영: 은빛 몸 + 연보라 테두리
-    tex('player', 32, 32, (g) => {
-      g.fillStyle(0xb9a6e8, 1); g.fillCircle(16, 16, 15);
-      g.fillStyle(0xdfe4f2, 1); g.fillCircle(16, 16, 12);
-      g.fillStyle(0x2a3370, 1); g.fillCircle(16, 13, 4);
-    });
+    makePlayerTexture(tex); // 월영: 여자 도사 (사용자 요청)
     // 기운(빛 테두리)
     tex('aura', 72, 72, (g) => {
       for (let r = 35; r > 16; r -= 3) { g.fillStyle(0xb9a6e8, 0.06); g.fillCircle(36, 36, r); }

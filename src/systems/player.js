@@ -17,7 +17,8 @@ export class Player {
     this.invulnUntil = 0;
     this.aura = scene.add.image(0, 0, 'aura').setDepth(19);
     this.auraScale = 1; // 경지가 오를수록 커짐 (realm.js)
-    this.sprite = scene.add.image(0, 0, 'player').setDepth(20);
+    this.sprite = scene.add.image(0, 0, 'player').setDepth(20).setOrigin(0.5, 0.62); // 기준점 = 몸 가운데
+    this.walkT = 0; // 걷는 동안 통통 튀는 시간
   }
 
   update(dt, move, now) {
@@ -28,8 +29,13 @@ export class Player {
       const m = Math.hypot(move.x, move.y);
       this.dirX = move.x / m;
       this.dirY = move.y / m;
+      if (Math.abs(move.x) > 0.05) this.sprite.flipX = move.x < 0; // 가는 쪽을 본다
+      this.walkT += dt;
+    } else {
+      this.walkT = 0;
     }
-    this.sprite.setPosition(this.x, this.y);
+    const bob = this.walkT ? -Math.abs(Math.sin(this.walkT / 110)) * 3 : 0; // 걸을 때 통통
+    this.sprite.setPosition(this.x, this.y + bob);
     this.aura.setPosition(this.x, this.y).setScale(this.auraScale * (1 + 0.08 * Math.sin(now / 250)));
     // 맞은 뒤 무적 동안 깜빡임
     this.sprite.setAlpha(now < this.invulnUntil && Math.floor(now / 70) % 2 ? 0.35 : 1);
