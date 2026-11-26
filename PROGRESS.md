@@ -2,7 +2,7 @@
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
-| 0 | 프로젝트 설정·문서·git·GitHub Pages 배포 | 진행 중 (배포 확인 대기) |
+| 0 | 프로젝트 설정·문서·git·GitHub Pages 배포 | 완료 (휴대폰 확인 대기) |
 | 1 | 이동, 비검, 잡귀, 체력, 게임오버, 시계, 시드 난수, 풀링, 격자, 타격감, 디버그, 자동 점검 | - |
 | 2a | 영기 구슬, 레벨업, 카드 화면, 공격 4종, 보조 3종 | - |
 | 2b | 나머지 법술, 카드 등급, 새로고침·봉인, 합일 4종 → 손맛 점검 | - |
@@ -23,10 +23,12 @@
 - docs/기획서.md(기획 전문), CLAUDE.md, PROGRESS.md
 - `npm run check`: 빌드 + Playwright로 열어 오류 0 확인(지금은 첫 화면만. 1단계에서 자동 플레이로 넓힘)
 - GitHub Actions 배포 설정(.github/workflows/deploy.yml), Vite base `/wolyoung/`
+- 저장소 https://github.com/yong2514/wolyoung , 배포 주소 https://yong2514.github.io/wolyoung/ (main에 push하면 1~2분 뒤 반영)
 
 ## 다음 할 일
 - 1단계
 
 ## 알려진 문제
 - 첫 로딩: Phaser 전체가 들어가 압축 약 320KB(목표 2MB 이하 안쪽). 9단계에서 다시 본다.
+- GitHub Actions에서 "Node.js 20 deprecated" 경고가 뜬다(배포는 정상). 액션 새 버전이 나오면 올린다.
 - 프로젝트가 OneDrive 폴더 안이라 node_modules도 동기화된다. 느려지면 OneDrive에서 이 폴더 동기화를 꺼도 된다.

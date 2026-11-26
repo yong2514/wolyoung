@@ -12,7 +12,7 @@
 - `npm run dev` 개발 서버(같은 와이파이 휴대폰: http://<노트북 IP>:5173)
 - `npm run check` 빌드 + Playwright 화면 없는 브라우저 점검. 단계를 끝낼 때 반드시 통과. `SHOT=<경로>`면 화면 사진 저장
 - `npm run build` → `dist/`. main에 push하면 GitHub Actions가 GitHub Pages로 배포(`.github/workflows/deploy.yml`)
-- 배포 주소: https://<GitHub 계정>.github.io/wolyoung/ (Vite base `/wolyoung/`, vite.config.js)
+- 배포 주소: https://yong2514.github.io/wolyoung/ (Vite base `/wolyoung/`, vite.config.js). gh는 `C:\Program Files\GitHub CLI`
 
 ## 기술 규칙 (기획서 12번 요약)
 - Phaser 3.90.0 고정, Arcade 물리만, JS ES 모듈, Vite. 기준 화면 390×844 세로, Scale FIT, safe-area 반영
