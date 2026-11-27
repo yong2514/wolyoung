@@ -18,6 +18,7 @@ export class Player {
     this.maxHp = cfg.maxHp;
     this.hp = cfg.maxHp;
     this.invulnUntil = 0;
+    this.shadow = scene.add.image(0, 0, 'shadow').setDepth(2).setScale(0.8); // 발밑 그림자
     this.aura = scene.add.image(0, 0, 'aura').setDepth(19);
     this.auraScale = 1; // 경지가 오를수록 커짐 (realm.js)
     this.sprite = scene.add.image(0, 0, 'player').setDepth(20).setOrigin(0.5, 0.6); // 기준점 = 몸 가운데
@@ -42,6 +43,7 @@ export class Player {
     if (this.sprite.texture.key !== frame) this.sprite.setTexture(frame);
     const bob = this.walkT ? -Math.abs(Math.sin((this.walkT / WALK_FRAME_MS) * (Math.PI / 2))) * 2 : 0;
     this.sprite.setPosition(this.x, this.y + bob);
+    this.shadow.setPosition(this.x, this.y + 22);
     this.aura.setPosition(this.x, this.y).setScale(this.auraScale * (1 + 0.08 * Math.sin(now / 250)));
     // 맞은 뒤 무적 동안 깜빡임
     this.sprite.setAlpha(now < this.invulnUntil && Math.floor(now / 70) % 2 ? 0.35 : 1);

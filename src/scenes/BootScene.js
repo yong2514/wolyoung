@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { makeEnemyTextures } from './enemyTextures.js';
 import { makePlayerTexture } from './playerTexture.js';
 import { makeBossTextures } from './bossTextures.js';
+import { makeGroundTextures } from './groundTextures.js';
 
 // 그림 대신 쓸 도형을 미리 그려 둔다 (나중에 그림 파일로 바꿀 때: config/assets.js)
 export class BootScene extends Phaser.Scene {
@@ -25,12 +26,15 @@ export class BootScene extends Phaser.Scene {
       g.fillPoints([{ x: 6, y: 4 }, { x: 12, y: 1 }, { x: 32, y: 4 }, { x: 12, y: 7 }], true);
     });
     tex('spark', 8, 8, (g) => { g.fillStyle(0xffffff, 1); g.fillCircle(4, 4, 4); });
-    // 영기 구슬: 푸른 마름모
-    tex('orb', 14, 14, (g) => {
-      g.fillStyle(0x7fd8ff, 0.35); g.fillCircle(7, 7, 7);
+    // 영기 구슬: 밝은 푸른 마름모 + 흰 테두리 (배경과 헷갈리지 않게)
+    tex('orb', 16, 16, (g) => {
+      g.fillStyle(0x7fd8ff, 0.45); g.fillCircle(8, 8, 8);
       g.fillStyle(0xbff0ff, 1);
-      g.fillPoints([{ x: 7, y: 1 }, { x: 12, y: 7 }, { x: 7, y: 13 }, { x: 2, y: 7 }], true);
+      g.fillPoints([{ x: 8, y: 1 }, { x: 14, y: 8 }, { x: 8, y: 15 }, { x: 2, y: 8 }], true);
+      g.lineStyle(1.5, 0xffffff, 1);
+      g.strokePoints([{ x: 8, y: 1 }, { x: 14, y: 8 }, { x: 8, y: 15 }, { x: 2, y: 8 }], true);
     });
+    makeGroundTextures(this, tex); // 바닥·장식·그림자·화면 가장자리
     // 뇌부 낙뢰: 위에서 내려오는 지그재그 (아래 끝이 기준점)
     tex('bolt', 30, 220, (g) => {
       const pts = [[16, 0], [8, 50], [20, 90], [6, 140], [18, 180], [15, 220]];
@@ -85,23 +89,6 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x9fb8ff, 0.35); g.fillCircle(17, 17, 17);
       g.fillStyle(0xeef3ff, 1); g.fillPoints(pts, true);
     });
-    // 장소 장식 (흰색 → 장소 색으로 칠함)
-    tex('decorRock', 30, 20, (g) => {
-      g.fillStyle(0xffffff, 0.8); g.fillEllipse(15, 12, 28, 16);
-      g.fillStyle(0xffffff, 1); g.fillEllipse(12, 9, 14, 8);
-    });
-    tex('decorLotus', 28, 18, (g) => {
-      g.fillStyle(0xffffff, 0.5); g.fillEllipse(14, 13, 26, 9); // 잎
-      g.fillStyle(0xffffff, 1);
-      g.fillTriangle(14, 1, 10, 12, 18, 12);
-      g.fillTriangle(7, 5, 9, 13, 14, 11);
-      g.fillTriangle(21, 5, 19, 13, 14, 11);
-    });
-    tex('decorGrass', 22, 18, (g) => {
-      g.lineStyle(2, 0xffffff, 1);
-      g.lineBetween(11, 18, 11, 2); g.lineBetween(11, 18, 4, 5); g.lineBetween(11, 18, 18, 4);
-      g.lineBetween(11, 18, 1, 10); g.lineBetween(11, 18, 21, 10);
-    });
     // 바닥에 떨어진 카드 (흰색 → 종류·등급 색으로 칠함)
     tex('fieldCard', 24, 32, (g) => {
       g.fillStyle(0xffffff, 1); g.fillRoundedRect(1, 1, 22, 30, 4);
@@ -129,13 +116,6 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x8fb8ff, 0.3); g.fillCircle(13, 13, 13);
       g.fillStyle(0xe6eeff, 1); g.fillCircle(13, 13, 8);
       g.fillStyle(0x8fb8ff, 1); g.fillCircle(11, 11, 3);
-    });
-    // 바닥 무늬: 움직이는 느낌이 나도록 옅은 점과 선
-    // 밝게 그리고 장소 색을 입힌다 (arena.js setTint): 바탕은 장소 색의 80%, 점·선은 장소 색 그대로
-    tex('bgtile', 96, 96, (g) => {
-      g.fillStyle(0xcccccc, 1); g.fillRect(0, 0, 96, 96);
-      g.fillStyle(0xffffff, 1); g.fillCircle(0, 0, 2); g.fillCircle(48, 48, 1.5);
-      g.lineStyle(1, 0xe0e0e0, 1); g.strokeRect(0, 0, 96, 96);
     });
     // 조이스틱
     tex('joyBase', 124, 124, (g) => {

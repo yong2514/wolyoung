@@ -22,6 +22,7 @@ export class EnemySystem {
       sprite: scene.add.image(0, 0, 'jabgwi').setVisible(false).setDepth(10),
       warn: scene.add.image(0, 0, 'ring').setVisible(false).setDepth(9),     // 공격 예고 (붉은·주황)
       glow: scene.add.image(0, 0, 'eliteGlow').setVisible(false).setDepth(9), // 정예 테두리
+      shadow: scene.add.image(0, 0, 'shadow').setVisible(false).setDepth(2),  // 발밑 그림자 (입체감)
       x: 0, y: 0, alive: false, inGrid: false, def: null, ai: {},
     }), BALANCE.limits.enemyCap + 60, BALANCE.limits.enemyCap);
   }
@@ -52,6 +53,7 @@ export class EnemySystem {
     resetAi(e);
     e.sprite.setTexture(def.texture).setPosition(x, y).setScale(elite ? E.scale : 1).clearTint().setVisible(true);
     e.glow.setVisible(elite).setScale(e.radius / 20);
+    e.shadow.setVisible(true).setScale(e.radius / 16);
     e.warn.setVisible(false);
     return e;
   }
@@ -190,6 +192,7 @@ export class EnemySystem {
       }
       this.scene.arena.clamp(e, e.radius); // 결계 벽 안에만
       e.sprite.setPosition(e.x, e.y);
+      e.shadow.setPosition(e.x, e.y + e.radius * 0.85);
       if (e.elite) e.glow.setPosition(e.x, e.y);
     }
 
@@ -287,6 +290,7 @@ export class EnemySystem {
     e.sprite.setVisible(false).clearTint();
     e.warn.setVisible(false);
     e.glow.setVisible(false);
+    e.shadow.setVisible(false);
     this.pool.release(e);
   }
 }

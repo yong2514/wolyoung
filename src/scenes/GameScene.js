@@ -48,6 +48,7 @@ export class GameScene extends Phaser.Scene {
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
     this.arena = new Arena(this); // 결계 벽으로 둘러싼 장소 (사용자 요청)
+    this.add.image(0, 0, 'vignette').setOrigin(0).setScrollFactor(0).setDepth(140); // 화면 가장자리를 살짝 어둡게 (깊이감)
     const cell = BALANCE.limits.gridCell;
     this.grid = new SpatialGrid(cell, Math.ceil((W + GRID_MARGIN * 2) / cell), Math.ceil((H + GRID_MARGIN * 2) / cell),
       BALANCE.limits.enemyCap + 100);

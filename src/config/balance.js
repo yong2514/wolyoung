@@ -62,12 +62,13 @@ export const BALANCE = {
     spawnInset: 30,       // 요괴는 벽에서 이만큼 안쪽, 화면 밖에서 나온다
     fadeMs: 400,          // 장소를 옮길 때 어두워지는·밝아지는 시간 (실제 시간)
     decor: 34,            // 장소마다 깔리는 장식(바위·연꽃·풀) 수
-    // atSec: 이 시간(초)부터 이 장소. bg 바닥 색, wall 벽 색, decor 장식 색
+    // atSec: 이 시간(초)부터 이 장소. bg 바닥(돌판) 색, wall 벽 색,
+    // decor 장식 종류(모나고 땅에 붙은 사물만: 요괴·구슬과 헷갈리지 않게), light 장식에 비치는 빛 색(어둡게 눌러 줌)
     places: [
-      { name: '달빛 숲', atSec: 0, bg: 0x1a2148, wall: 0xb9a6e8, decor: 0x6f7fb8 },
-      { name: '연꽃 호수', atSec: 60, bg: 0x0f2c52, wall: 0x8fd0ff, decor: 0xc9a8e8 },
-      { name: '부서진 사당', atSec: 120, bg: 0x2a2236, wall: 0xd9ccff, decor: 0x9a8a78 },
-      { name: '봉인의 제단', atSec: 180, bg: 0x34183a, wall: 0xffd36a, decor: 0xb08ab8 },
+      { name: '달빛 숲', atSec: 0, bg: 0x2a3462, wall: 0xb9a6e8, decor: ['decorRock', 'decorStump', 'decorGrass'], light: 0xb0b8d8 },
+      { name: '연꽃 호수', atSec: 60, bg: 0x1e3c68, wall: 0x8fd0ff, decor: ['decorPuddle', 'decorRock', 'decorGrass'], light: 0xa8bce0 },
+      { name: '부서진 사당', atSec: 120, bg: 0x3a3448, wall: 0xd9ccff, decor: ['decorPillar', 'decorCrack', 'decorRock'], light: 0xc8beb4 },
+      { name: '봉인의 제단', atSec: 180, bg: 0x44284e, wall: 0xffd36a, decor: ['decorPillar', 'decorCrack'], light: 0xd0b4c4 },
     ],
   },
 

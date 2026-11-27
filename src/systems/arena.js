@@ -40,11 +40,11 @@ export class Arena {
     for (const [x, y] of [[this.x0, this.y0], [this.x1, this.y0], [this.x0, this.y1], [this.x1, this.y1]]) g.fillCircle(x, y, 14);
     // 장식은 화면 효과 난수로 (게임 흐름에 영향 없음)
     const rng = sc.fxRng;
-    const kinds = ['decorRock', 'decorLotus', 'decorGrass'];
+    const kinds = pl.decor;
     for (const d of this.decor) {
       d.setTexture(kinds[Math.floor(rng.next() * kinds.length)])
-        .setPosition(rng.range(this.x0 + 40, this.x1 - 40), rng.range(this.y0 + 40, this.y1 - 40))
-        .setTint(pl.decor).setAlpha(0.55).setScale(rng.range(0.8, 1.5)).setFlipX(rng.next() < 0.5);
+        .setPosition(rng.range(this.x0 + 50, this.x1 - 50), rng.range(this.y0 + 50, this.y1 - 50))
+        .setTint(pl.light).setAlpha(1).setScale(rng.range(0.9, 1.5)).setFlipX(rng.next() < 0.5);
     }
   }
 
