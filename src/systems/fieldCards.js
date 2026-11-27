@@ -6,10 +6,12 @@ import { sfx } from './audio.js';
 import { rollCards, recheckCard, readyFusion } from './cards.js';
 
 const GOLD = 0xffd36a;
+export const SEOHA = 0xe6ecff; // 서하 카드 (은빛)
 const COLOR = { attack: 0xa9b8ff, support: 0x8fe0d0, item: 0xd9ccff, fusion: GOLD };
 
 /** 카드 색: 전설·합일 금빛, 희귀 하늘색, 나머지는 종류 색 */
 export function cardColor(c) {
+  if (c.key === 'seoha') return SEOHA;
   if (c.kind === 'fusion' || c.rarity === 'legend') return GOLD;
   if (c.rarity === 'rare') return 0x7fe0ff;
   return COLOR[c.kind] ?? COLOR.attack;
@@ -119,6 +121,10 @@ export class FieldCards {
     const sc = this.scene;
     const book = sc.book;
     const sec = `(${BALANCE.fieldCards.effectSec}초)`;
+    if (c.key === 'seoha') { // 서하 카드: 서하가 함께 싸움
+      sc.companion.summon(sc.clock.now);
+      return `서하! ${BALANCE.companion.summon.durationMs / 1000}초 함께`;
+    }
     if (c.key === 'veil') { // 은형부: 잠깐 투명
       sc.player.veilUntil = sc.clock.now + BALANCE.veil.durationMs;
       sfx.play('veil');

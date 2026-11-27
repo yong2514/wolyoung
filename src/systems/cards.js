@@ -96,6 +96,14 @@ export function rollCards(book, rng, n = 3, opts = {}) {
       text: `${V.durationMs / 1000}초 동안 몸이 투명해져 요괴와 부딪쳐도 다치지 않는다`,
     };
   }
+  // 서하 카드 (사용자 요청): 가끔 한 장이 서하 카드로 (주우면 서하가 함께 싸움). 난수는 늘 한 번 쓴다
+  const S = BALANCE.companion.summon;
+  if (rng.next() < S.cardChance && cards.length >= 2 && !opts.minRare) {
+    cards[0] = {
+      key: 'seoha', name: '서하', kind: 'item', isNew: false, rarity: 'rare',
+      text: `서하가 ${S.durationMs / 1000}초 동안 곁에서 함께 싸운다`,
+    };
+  }
   if (opts.minRare && !cards.some((c) => c.rarity !== 'common')) {
     const i = cards.findIndex((c) => c.kind !== 'item' && c.kind !== 'fusion' && book.maxLevel(c.key) - book.level(c.key) >= 2);
     if (i >= 0) cards[i] = spellCard(book, cards[i].key, BALANCE.cards.gain.rare);

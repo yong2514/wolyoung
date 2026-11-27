@@ -8,7 +8,7 @@ const TINT = 0xc8d4ff; // 동료 법술 색 (연하게)
 
 // 동료 (기획서 4번): 주인공 뒤를 따라다니고, 멀어지면 곁으로 순간이동, 피해를 받지 않는다.
 // 서하 · 천검결: 주기적으로 둘레 요괴에게 검비. 부활 때는 크게 한 번(burst).
-// 사용자 요청: 늘 있지 않고 「서하」 버튼으로 부를 때만 summon.durationMs 동안 나온다 (다시 부르기까지 cooldownMs)
+// 사용자 요청: 늘 있지 않고 서하 카드(바닥 카드)를 주울 때만 summon.durationMs 동안 나온다
 export class Companion {
   constructor(scene, key) {
     this.scene = scene;
@@ -31,7 +31,6 @@ export class Companion {
     this.walkT = 0;
     this.active = false;   // 지금 함께 있나
     this.until = 0;        // 이때 떠남
-    this.readyAt = 0;      // 이때부터 다시 부를 수 있음
     this.setVisible(false);
   }
 
@@ -54,25 +53,24 @@ export class Companion {
     this.scene.effects.flash('ring', this.x, this.y, { life: 350, scale: 0.1, scaleTo: 0.9, tint: TINT, alpha: 0.8 });
   }
 
-  /** 「서하」 버튼: 부르기. 불렀으면 true */
+  /** 서하 카드를 주움: 함께 싸우기 (이미 있으면 시간이 늘어남) */
   summon(now) {
     const S = this.cfg.summon;
-    if (this.active || now < this.readyAt || this.scene.state !== 'play') return false;
+    if (this.active) {
+      this.until += S.durationMs;
+      this.say('…조금 더 있어 주지.');
+      return;
+    }
     this.active = true;
     this.until = now + S.durationMs;
-    this.readyAt = now + S.cooldownMs;
     this.nextSkill = now + 400;
     this.appear();
     this.say('검이 필요하냐.');
     sfx.play('veil');
-    return true;
   }
 
-  /** 다시 부르기까지 남은 비율 (0이면 부를 수 있음) */
-  cooldownLeft(now) {
-    if (this.active) return 1;
-    return Math.max(0, (this.readyAt - now) / this.cfg.summon.cooldownMs);
-  }
+  /** 함께 있는 남은 시간 (ms, 없으면 0) */
+  timeLeft(now) { return this.active ? Math.max(0, this.until - now) : 0; }
 
   leave() {
     this.active = false;

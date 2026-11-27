@@ -30,7 +30,6 @@ import { Hud } from '../ui/hud.js';
 import { Minimap } from '../ui/minimap.js';
 import { BuffList } from '../ui/buffs.js';
 import { JumpButton } from '../ui/jumpButton.js';
-import { SkillButton } from '../ui/skillButton.js';
 import { DebugPanel } from '../ui/debug.js';
 import { showPause, runCountdown } from '../ui/overlays.js';
 import { onDeath, clearRun, loseRun, finishAuto } from './runEnd.js';
@@ -82,10 +81,7 @@ export class GameScene extends Phaser.Scene {
     this.minimap = new Minimap(this);
     this.buffList = new BuffList(this);
     this.jumpBtn = new JumpButton(this);
-    // 「서하」 버튼: 부를 때만 함께 싸운다 (사용자 요청)
-    this.summonBtn = new SkillButton(this, this.companion.def.name, () => this.companion.summon(this.clock.now),
-      { side: 'left', dy: 200, fontSize: '17px', fill: 0x26306a });
-    this.hud.banner(this.arena.place.name, `1번째 장소 · ${BALANCE.arena.placeSec}초 버티면 대형 요괴`);
+    this.hud.banner(this.arena.place.name, '1분 버티면 대형 요괴');
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
@@ -141,7 +137,6 @@ export class GameScene extends Phaser.Scene {
     this.minimap.update();
     this.buffList.update();
     this.jumpBtn.update();
-    this.summonBtn.update(this.companion.cooldownLeft(this.clock.now));
     this.firstRun.tick(this.clock.now);
     this.perf.update(delta);
     this.debug?.update();

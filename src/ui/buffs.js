@@ -27,13 +27,22 @@ export class BuffList {
     const book = sc.book;
     const now = sc.clock.now;
     const full = BALANCE.fieldCards.effectSec * 1000;
-    const veil = sc.player.veiled(now); // 은형부는 맨 위 줄
-    const keys = (veil ? ['veil'] : []).concat(book.order).slice(0, ROWS);
+    const veil = sc.player.veiled(now); // 은형부·서하는 맨 위 줄
+    const seoha = sc.companion.active;
+    const keys = (seoha ? ['seoha'] : []).concat(veil ? ['veil'] : [], book.order).slice(0, ROWS);
     this.rows.forEach((r, i) => {
       const key = keys[i];
       const on = !!key;
       r.text.setVisible(on);
       if (!on) { r.bg.setVisible(false); r.bar.setVisible(false); return; }
+      if (key === 'seoha') {
+        if (r.label !== '서하') { r.label = '서하'; r.text.setText('서하'); }
+        r.bg.setVisible(true);
+        r.bar.setVisible(true);
+        r.bar.width = BAR_W * Math.min(1, sc.companion.timeLeft(now) / BALANCE.companion.summon.durationMs);
+        r.bar.fillColor = 0xe6ecff;
+        return;
+      }
       if (key === 'veil') {
         if (r.label !== '은형') { r.label = '은형'; r.text.setText('은형부'); }
         r.bg.setVisible(true);
