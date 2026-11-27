@@ -19,8 +19,8 @@ export class FirstRun {
     if (this.active) this.showTutorial();
   }
 
-  /** 체력이 1 밑으로 안 내려가는 때 */
-  hpFloor() { return this.active && !this.scene.bosses.king; }
+  /** 체력이 1 밑으로 안 내려가는 때: 첫 장소(첫 대형 요괴까지)만 — 판이 길어져 끝까지 지켜 주면 너무 안 죽음(사용자 요청) */
+  hpFloor() { return this.active && this.scene.arena.index === 0 && !this.scene.bosses.king; }
 
   /** 체력이 1에 닿음: 잠깐 흑백 + "버텨라." */
   onHitFloor(now) {

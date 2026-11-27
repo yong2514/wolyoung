@@ -1,3 +1,4 @@
+import { BALANCE } from '../config/balance.js';
 import { Pool } from './pool.js';
 
 // 요괴가 쏜 탄 (붉은색). 플레이어에 닿으면 피해
@@ -17,7 +18,7 @@ export class EnemyBullets {
     b.vx = dirX * cfg.bulletSpeed;
     b.vy = dirY * cfg.bulletSpeed;
     b.dieAt = this.scene.clock.now + cfg.bulletLifeMs;
-    b.damage = cfg.bulletDamage * (elite ? 1.4 : 1) * this.scene.enemies.dmgMult;
+    b.damage = cfg.bulletDamage * (elite ? 1.4 : 1) * this.scene.enemies.dmgMult * BALANCE.enemies.damageMult;
     b.r = cfg.bulletRadius * (elite ? 1.4 : 1);
     b.sprite.setPosition(x, y).setScale(b.r / 7).setVisible(true);
   }

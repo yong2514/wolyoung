@@ -24,7 +24,7 @@ export const BALANCE = {
     maxHp: 100,           // 시작 최대 체력
     speed: 330,           // 이동 속도 (픽셀/초). 화면 폭 390 → 1초에 화면의 약 85%
     radius: 14,           // 몸 크기 (부딪힘 판정 반지름)
-    hurtInvulnMs: 500,    // 맞은 뒤 무적 시간
+    hurtInvulnMs: 350,    // 맞은 뒤 무적 시간 (사용자 요청 '너무 안 죽어'로 500→350)
   },
 
   // 손가락 따라 움직이기 (사용자 요청): 손가락이 움직인 거리 × ratio 만큼 주인공이 움직인다
@@ -90,6 +90,8 @@ export const BALANCE = {
     lowerTierChance: 0.3, // 이 확률로 한 단계 아래 요괴가 섞여 나옴
     speedJitter: 0.2,     // 마리마다 속도를 ±10%씩 다르게
     hpGrowthPerMin: 0.3,  // 1분마다 새로 나오는 요괴 체력 +30%
+    damageMult: 1.5,      // 모든 요괴 공격력 배율 (사용자 요청 '너무 안 죽어')
+    countMult: 1.25,      // 나오는 요괴 수 배율 (같은 까닭)
     types: ENEMY_TYPES,   // 특수 요괴 5종 → balance_waves.js
     elite: ELITE,         // 정예 → balance_waves.js
   },

@@ -29,8 +29,11 @@ export class Player {
     this.walkT = 0; // 걷는 동안 통통 튀는 시간
   }
 
-  /** 공중에 있나 (장애물을 넘고, 몸으로 부딪혀도 안 다침) */
+  /** 공중에 있나 (장애물·요괴를 넘고, 몸으로 부딪혀도 안 다침) */
   jumping(now) { return now - this.jumpAt < BALANCE.jump.durationMs; }
+
+  /** 몸 부딪힘에 안 다치는 때: 공중 + 착지 직후 잠깐 */
+  airSafe(now) { return now - this.jumpAt < BALANCE.jump.durationMs + BALANCE.jump.landingSafeMs; }
 
   veiled(now) { return now < this.veilUntil; }
 
@@ -46,8 +49,16 @@ export class Player {
   /** move: 방향(-1~1, 자동 플레이) 또는 direct면 이번 걸음에 움직일 거리(px, 손가락 따라 움직이기) */
   update(dt, move, now) {
     const s = dt / 1000;
-    const mx = move.direct ? move.x : move.x * this.speed * s;
-    const my = move.direct ? move.y : move.y * this.speed * s;
+    let mx = move.direct ? move.x : move.x * this.speed * s;
+    let my = move.direct ? move.y : move.y * this.speed * s;
+    if (this.jumping(now)) { // 점프: 가던 방향으로 앞으로 날아간다 (요괴·장애물 넘기)
+      const J = BALANCE.jump;
+      const fx = this.dirX || (this.sprite.flipX ? -1 : 1);
+      const fy = this.dirY;
+      const f = Math.hypot(fx, fy) || 1;
+      mx += (fx / f) * J.distance * (dt / J.durationMs);
+      my += (fy / f) * J.distance * (dt / J.durationMs);
+    }
     const m = Math.hypot(mx, my);
     if (m > 0.05) {
       this.x += mx;
@@ -87,7 +98,7 @@ export class Player {
   hurt(dmg, now, contact = false) {
     const sc = this.scene;
     if (sc.god || sc.realm.breaking || now < this.invulnUntil || this.hp <= 0) return; // 돌파 연출 중 무적
-    if (contact && (this.jumping(now) || this.veiled(now))) return;
+    if (contact && (this.airSafe(now) || this.veiled(now))) return;
     if (sc.firstRun.hpFloor() && this.hp - dmg < 1) { // 첫 판: 요황 전에는 1 밑으로 안 내려감
       this.hp = 1;
       sc.firstRun.onHitFloor(now); // 잠깐 흑백 + "버텨라." (말은 8초에 한 번)

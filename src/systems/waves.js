@@ -31,7 +31,7 @@ export class Waves {
     const w = this.wave;
     const en = sc.enemies;
 
-    this.acc += (w.rate * this.countMult * dt) / 1000;
+    this.acc += (w.rate * this.countMult * BALANCE.enemies.countMult * dt) / 1000;
     while (this.acc >= 1) {
       this.acc -= 1;
       if (en.count >= en.cap) { en.upgradeOne(now); continue; } // 상한: 수 대신 더 센 요괴로

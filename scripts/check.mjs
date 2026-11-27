@@ -49,7 +49,8 @@ try {
   if (wv && (wv.reason !== '클리어' || wv.place !== 4)) problems.push(`[무적 한 판] 끝: ${wv.reason}, 장소 ${wv.place} (장소 4에서 클리어여야 함)`);
   if (wv && !(wv.realmSecs[0] <= 60)) problems.push(`[무적 한 판] 축기 돌파 ${wv.realmSecs[0] ?? '없음'}초 (60초 안이어야 함)`);
   // 첫 판 각본: 첫 카드 20초 안·희귀 이상, 축기 60초 안, 봉인의 일격 → 각본 부활 → 클리어
-  const fr = await runOnce('첫 판 각본', '?debug=1&auto=1&first=1&speed=4&autoMax=900', 420000);
+  // (무적: 무작위 자동 플레이가 중간에 쓰러지지 않게. 봉인의 일격은 무적이어도 체력을 0으로 만든다)
+  const fr = await runOnce('첫 판 각본', '?debug=1&auto=1&first=1&god=1&speed=4&autoMax=900', 420000);
   if (fr) {
     if (fr.reason !== '클리어') problems.push(`[첫 판 각본] 끝: ${fr.reason} (클리어여야 함)`);
     if (!fr.sealStruck || !fr.scriptRevived) problems.push('[첫 판 각본] 봉인의 일격·각본 부활이 일어나지 않음');

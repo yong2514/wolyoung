@@ -33,7 +33,9 @@ export const ARENA_BALANCE = {
 };
 
 export const JUMP_BALANCE = {
-  durationMs: 550,      // 공중에 있는 시간 (장애물을 넘고, 요괴와 부딪혀도 안 다침)
+  durationMs: 550,      // 공중에 있는 시간 (장애물·요괴를 넘고, 요괴와 부딪혀도 안 다침)
+  distance: 110,        // 점프하면 가던 방향으로 이만큼 앞으로 날아감 (요괴 무리를 뛰어넘기, 사용자 요청)
+  landingSafeMs: 200,   // 착지 직후 이만큼은 몸 부딪힘에 안 다침
   cooldownMs: 1200,     // 다시 뛰기까지
   height: 30,           // 뛰어오르는 높이 (그림)
   hintRange: 70,        // 장애물이 이 거리 안이면 점프 버튼이 반짝임

@@ -43,7 +43,7 @@ export class EnemySystem {
     e.hp = def.boss ? def.hp * this.hpMult : def.hp * growth * this.hpMult * (elite ? E.hpMult : 1);
     e.maxHp = e.hp;
     e.speed = def.speed * (1 + (this.rng.next() - 0.5) * BALANCE.enemies.speedJitter);
-    e.damage = def.damage * (elite ? E.damageMult : 1) * this.dmgMult;
+    e.damage = def.damage * (elite ? E.damageMult : 1) * this.dmgMult * BALANCE.enemies.damageMult;
     e.radius = def.radius * (elite ? E.scale : 1);
     e.id = this.nextId++;
     e.alive = true;

@@ -256,7 +256,7 @@ export class Bosses {
       z.r = sl.radius;
       z.warn = sl.warnMs;
       z.at = now + sl.warnMs;
-      z.damage = sl.damage * this.rageMult() * sc.enemies.dmgMult;
+      z.damage = sl.damage * this.rageMult() * sc.enemies.dmgMult * BALANCE.enemies.damageMult;
       z.fill.setPosition(z.x, z.y).setRadius(z.r).setFillStyle(WARN, 0.15).setVisible(true);
       z.ring.setPosition(z.x, z.y).setScale(z.r / 32).setTint(WARN).setAlpha(0.8).setVisible(true);
     }
