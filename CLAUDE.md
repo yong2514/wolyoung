@@ -38,6 +38,7 @@
 - `src/data/` story.js(동료 대사), spells.js, enemies.js
 - `src/scenes/` BootScene(도형 그림: playerTexture·enemyTextures·bossTextures) → GameScene(한 판)
 - 레벨업 카드는 고르는 화면 없이 바닥에 3장 떨어지고 하나를 주우면 나머지는 사라짐(fieldCards). 작은 지도 ui/minimap.js (사용자 요청)
+- 판은 결계 벽 안 장소(systems/arena.js)에서 하고 60초마다 다음 장소로 옮긴다(사용자 요청). 새 위치는 arena.clamp/spawnPoint로 벽 안에
 - 요괴: enemies(풀·맞기·죽기)·enemyAI(행동·예고)·enemyBullets·waves(웨이브)·chests·realm(경지 돌파)·bosses(요장·요황)
 - `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·flash·흔들림·진동)·enemies·player·perf·autoplay
   - orbs(영기 구슬)·leveling(영기·레벨)·cards(카드 3장 뽑기, cardRng)·spellbook(가진 법술·보조 능력치)

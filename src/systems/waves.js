@@ -45,7 +45,9 @@ export class Waves {
     const start = idx * this.cfg.waveSec * 1000;
     this.eliteQueue = (w.elites ?? []).map((s) => start + s * 1000).filter((t) => t >= now);
     for (let i = 0; i < (w.chests ?? 0); i++) this.scene.chests.dropNearPlayer();
-    if (!w.boss) this.scene.hud.banner(`웨이브 ${idx + 1}`, w.label); // 보스 웨이브는 보스 등장 알림이 대신
+    // 보스 웨이브는 보스 등장 알림이, 장소를 옮기는 때는 장소 알림이 대신
+    const placeChange = idx > 0 && BALANCE.arena.places.some((p) => p.atSec * 1000 === start);
+    if (!w.boss && !placeChange) this.scene.hud.banner(`웨이브 ${idx + 1}`, w.label);
   }
 
   /** 웨이브 비율(mix)대로 요괴 종류 고르기. 정예는 분열 조각 대신 다른 종류 */

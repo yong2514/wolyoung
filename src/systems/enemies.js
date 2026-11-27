@@ -55,16 +55,13 @@ export class EnemySystem {
     return e;
   }
 
-  /** 화면 바로 밖 둥근 테두리 위 한 점. ahead면 플레이어가 가는 쪽 앞에 */
-  ringPoint(ahead) {
-    const p = this.scene.player;
-    let a = this.rng.next() * TAU;
-    if (ahead && (p.dirX || p.dirY)) a = Math.atan2(p.dirY, p.dirX) + (this.rng.next() - 0.5) * (Math.PI / 1.5);
-    return { x: p.x + Math.cos(a) * RING, y: p.y + Math.sin(a) * RING };
+  /** 요괴가 나올 자리: 결계 벽 안쪽, 되도록 화면 밖 (arena.spawnPoint) */
+  ringPoint() {
+    return this.scene.arena.spawnPoint(this.rng);
   }
 
   spawnRing(key, now, elite = false) {
-    const pt = this.ringPoint(false);
+    const pt = this.ringPoint();
     return this.spawn(key, pt.x, pt.y, now, elite);
   }
 
@@ -96,7 +93,8 @@ export class EnemySystem {
     for (let i = 0; i < n; i++) {
       const a = this.rng.next() * TAU;
       const d = this.rng.range(120, RING);
-      if (!this.spawn(this.chaserKey(), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, now)) break;
+      const pt = this.scene.arena.clamp({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d }, 20);
+      if (!this.spawn(this.chaserKey(), pt.x, pt.y, now)) break;
     }
   }
 
@@ -117,7 +115,7 @@ export class EnemySystem {
         continue;
       }
       if (dx * dx + dy * dy > far2) { // 너무 멀면 앞쪽으로 다시 옮긴다 (멀리 있는 요괴는 단순 계산)
-        const pt = this.ringPoint(true);
+        const pt = this.ringPoint();
         e.x = pt.x; e.y = pt.y;
         resetAi(e);
         e.warn.setVisible(false);
@@ -189,6 +187,7 @@ export class EnemySystem {
           }
         }
       }
+      this.scene.arena.clamp(e, e.radius); // 결계 벽 안에만
       e.sprite.setPosition(e.x, e.y);
       if (e.elite) e.glow.setPosition(e.x, e.y);
     }

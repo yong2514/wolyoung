@@ -32,9 +32,9 @@ export class Bosses {
   spawn(key, now) {
     const sc = this.scene;
     const en = sc.enemies;
-    const p = sc.player;
+    const pt = sc.arena.spawnPoint(sc.rng); // 결계 벽 안, 되도록 화면 밖
     en.cap += 1;
-    const e = en.spawn(key, p.x, p.y - 420, now);
+    const e = en.spawn(key, pt.x, pt.y, now);
     en.cap -= 1;
     e.ai.next = now + 1500; // 처음 패턴까지
     e.ai.summonAt = now + (BALANCE.boss[key].summonEveryMs ?? 1e9);
@@ -238,6 +238,7 @@ export class Bosses {
       const d = i === 0 ? 0 : sc.rng.range(sl.radius, sl.spread);
       z.x = p.x + Math.cos(a) * d;
       z.y = p.y + Math.sin(a) * d;
+      sc.arena.clamp(z, 20);
       z.r = sl.radius;
       z.warn = sl.warnMs;
       z.at = now + sl.warnMs;
@@ -264,6 +265,10 @@ export class Bosses {
     }
   }
 
+  clearZones() {
+    for (const z of this.zones.active.slice()) this.clearZone(z);
+  }
+
   clearZone(z) {
     z.fill.setVisible(false);
     z.ring.setVisible(false);
@@ -279,7 +284,7 @@ export class Bosses {
       return;
     }
     this.done = true;
-    for (const z of this.zones.active.slice()) this.clearZone(z);
+    this.clearZones();
     sc.clear();
   }
 }

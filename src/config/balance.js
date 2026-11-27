@@ -48,10 +48,25 @@ export const BALANCE = {
     pickRadius: 18,       // 이만큼 닿으면 주움
     max: 30,              // 바닥에 동시에 있을 수 있는 카드 수 (넘으면 바로 적용)
   },
-  minimap: {              // 작은 지도 (오른쪽 위)
-    size: 96,             // 지도 크기 (픽셀)
-    range: 700,           // 지도 가운데에서 가장자리까지 = 월드 거리 이만큼
+  minimap: {              // 작은 지도 (오른쪽 위): 장소 전체를 보여 준다
+    height: 96,           // 지도 높이 (픽셀). 너비는 장소 비율대로
     top: 62,              // 화면 위에서 떨어진 거리
+  },
+
+  // 활동 공간 (사용자 요청): 결계 벽으로 둘러싼 장소. 시간이 지나면 다음 장소로 옮겨 간다
+  arena: {
+    width: 1100,          // 장소 너비 (화면 390의 약 3배)
+    height: 1500,         // 장소 높이 (화면 844의 약 2배)
+    spawnInset: 30,       // 요괴는 벽에서 이만큼 안쪽, 화면 밖에서 나온다
+    fadeMs: 400,          // 장소를 옮길 때 어두워지는·밝아지는 시간 (실제 시간)
+    decor: 34,            // 장소마다 깔리는 장식(바위·연꽃·풀) 수
+    // atSec: 이 시간(초)부터 이 장소. bg 바닥 색, wall 벽 색, decor 장식 색
+    places: [
+      { name: '달빛 숲', atSec: 0, bg: 0x1a2148, wall: 0xb9a6e8, decor: 0x6f7fb8 },
+      { name: '연꽃 호수', atSec: 60, bg: 0x0f2c52, wall: 0x8fd0ff, decor: 0xc9a8e8 },
+      { name: '부서진 사당', atSec: 120, bg: 0x2a2236, wall: 0xd9ccff, decor: 0x9a8a78 },
+      { name: '봉인의 제단', atSec: 180, bg: 0x34183a, wall: 0xffd36a, decor: 0xb08ab8 },
+    ],
   },
 
   enemies: {
@@ -78,7 +93,7 @@ export const BALANCE = {
 
   spawn: {
     ringMargin: 60,       // 화면 밖 이만큼 떨어진 곳에서 나옴
-    farDistance: 900,     // 플레이어와 이보다 멀어지면 앞쪽으로 다시 옮김
+    farDistance: 2500,    // 플레이어와 이보다 멀어지면 다시 옮김 (결계 장소 대각선보다 길게 = 사실상 안 씀)
   },
 
   limits: {

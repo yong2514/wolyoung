@@ -26,7 +26,8 @@ export class Chests {
     const sc = this.scene;
     const a = sc.rng.next() * Math.PI * 2;
     const d = sc.rng.range(110, 170);
-    this.drop(sc.player.x + Math.cos(a) * d, sc.player.y + Math.sin(a) * d);
+    const pt = sc.arena.clamp({ x: sc.player.x + Math.cos(a) * d, y: sc.player.y + Math.sin(a) * d }, 40);
+    this.drop(pt.x, pt.y);
   }
 
   update(dt, now) {

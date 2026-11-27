@@ -47,14 +47,13 @@ export class FieldCards {
       if (!o) { this.apply(c); return; } // 바닥이 가득 차면 바로 적용
       const a = base + (i * Math.PI * 2) / cards.length + (rng.next() - 0.5) * 0.6;
       const d = rng.range(this.cfg.minDist, this.cfg.maxDist);
-      o.x = p.x + Math.cos(a) * d;
-      o.y = p.y + Math.sin(a) * d;
       o.card = c;
       o.group = g;
       o.born = now;
+      this.place(o, sc.arena.clamp({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d }, 40)); // 결계 벽 안
       const col = cardColor(c);
-      o.sprite.setPosition(o.x, o.y).setTint(col).setScale(c.rarity === 'legend' || c.kind === 'fusion' ? 1.2 : 1).setVisible(true);
-      o.glow.setPosition(o.x, o.y).setTint(col).setVisible(true);
+      o.sprite.setTint(col).setScale(c.rarity === 'legend' || c.kind === 'fusion' ? 1.2 : 1).setVisible(true);
+      o.glow.setTint(col).setVisible(true);
       const star = c.rarity === 'legend' ? '★' : c.rarity === 'rare' ? '☆' : '';
       const name = c.kind === 'fusion' ? `합일 ${c.name}` : c.isNew || c.kind === 'item' ? c.name : `${c.name} ${c.to}단계`;
       o.label.setText(star + name).setColor(`#${col.toString(16).padStart(6, '0')}`).setVisible(true);
@@ -62,6 +61,15 @@ export class FieldCards {
     if (sc.stats.firstCardMs === null) sc.stats.firstCardMs = now;
     sfx.play('levelup');
     sc.effects.flash('ring', p.x, p.y, { life: 400, scale: 0.5, scaleTo: 3, tint: 0xbff0ff, depth: 40 });
+  }
+
+  /** 카드를 (x,y)에 놓기 (장소를 옮길 때도 씀) */
+  place(o, pt) {
+    o.x = pt.x;
+    o.y = pt.y;
+    o.sprite.setPosition(o.x, o.y);
+    o.glow.setPosition(o.x, o.y);
+    o.label.setPosition(o.x, o.y - 22);
   }
 
   update(dt, now) {

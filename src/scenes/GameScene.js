@@ -13,6 +13,7 @@ import { Waves } from '../systems/waves.js';
 import { Chests } from '../systems/chests.js';
 import { Realm } from '../systems/realm.js';
 import { Bosses } from '../systems/bosses.js';
+import { Arena } from '../systems/arena.js';
 import { Player } from '../systems/player.js';
 import { SpellBook } from '../systems/spellbook.js';
 import { Orbs } from '../systems/orbs.js';
@@ -29,7 +30,7 @@ import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
-// 한 판. state: play(진행) · target(멸요인 구역) · paused(일시정지) · countdown(3초) · over(끝)
+// 한 판. state: play(진행) · target(멸요인 구역) · travel(다음 장소로) · paused(일시정지) · countdown(3초) · over(끝)
 // 레벨업 카드는 멈추지 않고 바닥에 떨어진다 (systems/fieldCards.js)
 export class GameScene extends Phaser.Scene {
   constructor() { super('Game'); }
@@ -45,6 +46,7 @@ export class GameScene extends Phaser.Scene {
     this.stats = { kills: 0, elites: 0, chests: 0, seonok: 0, maxEnemies: 0, firstCardMs: null };
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
+    this.arena = new Arena(this); // 결계 벽으로 둘러싼 장소 (사용자 요청)
     const cell = BALANCE.limits.gridCell;
     this.grid = new SpatialGrid(cell, Math.ceil((W + GRID_MARGIN * 2) / cell), Math.ceil((H + GRID_MARGIN * 2) / cell),
       BALANCE.limits.enemyCap + 100);
@@ -111,8 +113,10 @@ export class GameScene extends Phaser.Scene {
   /** 게임 한 걸음 (dt: 게임 시간 ms, 늘 STEP) */
   step(dt) {
     const now = this.clock.now;
+    if (this.arena.update(now)) return; // 다음 장소로 옮기는 중
     const move = this.auto ? this.auto.vector(dt, this) : this.joystick.vector;
     this.player.update(dt, move, now);
+    this.arena.clamp(this.player, this.player.radius); // 결계 벽 안에만
     this.waves.update(dt, now);
     this.bosses.update(dt, now);
     if (this.state !== 'play') return; // 봉인석 붕괴로 끝남

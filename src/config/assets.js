@@ -22,6 +22,8 @@ export const IMAGES = {
   warnLine: null, ebullet: null, eliteGlow: null, // 예고선·요괴 탄·정예 테두리
   chest: null,    // 보물상자
   pillar: null,   // 경지 돌파 빛기둥
+  fieldCard: null, // 바닥에 떨어진 카드
+  decorRock: null, decorLotus: null, decorGrass: null, // 장소 장식
 };
 
 /** 효과음 목록. null이면 합성음을 쓴다. */
@@ -41,4 +43,5 @@ export const SOUNDS = {
   flame: null,    // 청염
   boom: null,     // 부적 폭발·폭귀 폭발
   breakthrough: null, // 경지 돌파
+  travel: null,   // 다음 장소로
 };

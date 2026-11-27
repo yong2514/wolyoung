@@ -85,6 +85,23 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x9fb8ff, 0.35); g.fillCircle(17, 17, 17);
       g.fillStyle(0xeef3ff, 1); g.fillPoints(pts, true);
     });
+    // 장소 장식 (흰색 → 장소 색으로 칠함)
+    tex('decorRock', 30, 20, (g) => {
+      g.fillStyle(0xffffff, 0.8); g.fillEllipse(15, 12, 28, 16);
+      g.fillStyle(0xffffff, 1); g.fillEllipse(12, 9, 14, 8);
+    });
+    tex('decorLotus', 28, 18, (g) => {
+      g.fillStyle(0xffffff, 0.5); g.fillEllipse(14, 13, 26, 9); // 잎
+      g.fillStyle(0xffffff, 1);
+      g.fillTriangle(14, 1, 10, 12, 18, 12);
+      g.fillTriangle(7, 5, 9, 13, 14, 11);
+      g.fillTriangle(21, 5, 19, 13, 14, 11);
+    });
+    tex('decorGrass', 22, 18, (g) => {
+      g.lineStyle(2, 0xffffff, 1);
+      g.lineBetween(11, 18, 11, 2); g.lineBetween(11, 18, 4, 5); g.lineBetween(11, 18, 18, 4);
+      g.lineBetween(11, 18, 1, 10); g.lineBetween(11, 18, 21, 10);
+    });
     // 바닥에 떨어진 카드 (흰색 → 종류·등급 색으로 칠함)
     tex('fieldCard', 24, 32, (g) => {
       g.fillStyle(0xffffff, 1); g.fillRoundedRect(1, 1, 22, 30, 4);
@@ -114,10 +131,11 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x8fb8ff, 1); g.fillCircle(11, 11, 3);
     });
     // 바닥 무늬: 움직이는 느낌이 나도록 옅은 점과 선
+    // 밝게 그리고 장소 색을 입힌다 (arena.js setTint): 바탕은 장소 색의 80%, 점·선은 장소 색 그대로
     tex('bgtile', 96, 96, (g) => {
-      g.fillStyle(0x141a3a, 1); g.fillRect(0, 0, 96, 96);
-      g.fillStyle(0x1e2550, 1); g.fillCircle(0, 0, 2); g.fillCircle(48, 48, 1.5);
-      g.lineStyle(1, 0x1a2149, 1); g.strokeRect(0, 0, 96, 96);
+      g.fillStyle(0xcccccc, 1); g.fillRect(0, 0, 96, 96);
+      g.fillStyle(0xffffff, 1); g.fillCircle(0, 0, 2); g.fillCircle(48, 48, 1.5);
+      g.lineStyle(1, 0xe0e0e0, 1); g.strokeRect(0, 0, 96, 96);
     });
     // 조이스틱
     tex('joyBase', 124, 124, (g) => {
