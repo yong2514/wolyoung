@@ -20,16 +20,17 @@ import { Leveling } from '../systems/leveling.js';
 import { PerfMonitor } from '../systems/perf.js';
 import { AutoPlayer } from '../systems/autoplay.js';
 import { sfx } from '../systems/audio.js';
+import { FieldCards } from '../systems/fieldCards.js';
 import { Joystick } from '../ui/joystick.js';
 import { Hud } from '../ui/hud.js';
-import { StashButton } from '../ui/stash.js';
+import { Minimap } from '../ui/minimap.js';
 import { DebugPanel } from '../ui/debug.js';
 import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
-import { openCards, openStash } from './levelUpFlow.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
-// 한 판. state: play(진행) · card(카드 고르기) · stash(보관함) · target(멸요인 구역) · paused(일시정지) · countdown(3초) · over(끝)
+// 한 판. state: play(진행) · target(멸요인 구역) · paused(일시정지) · countdown(3초) · over(끝)
+// 레벨업 카드는 멈추지 않고 바닥에 떨어진다 (systems/fieldCards.js)
 export class GameScene extends Phaser.Scene {
   constructor() { super('Game'); }
 
@@ -42,13 +43,12 @@ export class GameScene extends Phaser.Scene {
     this.god = PARAMS.god;
     this.state = 'play';
     this.stats = { kills: 0, elites: 0, chests: 0, seonok: 0, maxEnemies: 0, firstCardMs: null };
-    this.run = { refresh: BALANCE.cards.refreshPerRun, banish: BALANCE.cards.banishPerRun }; // 이 판에 남은 횟수
-    this.stash = []; // 보관한 카드 { key, gain, rarity }
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
     const cell = BALANCE.limits.gridCell;
     this.grid = new SpatialGrid(cell, Math.ceil((W + GRID_MARGIN * 2) / cell), Math.ceil((H + GRID_MARGIN * 2) / cell),
       BALANCE.limits.enemyCap + 100);
+    this.grid.bodyPad = BALANCE.boss.yohwang.radius; // 가장 큰 요괴(요황) 몸만큼 넓게 검사
     this.effects = new Effects(this);
     this.player = new Player(this);
     this.enemies = new EnemySystem(this);
@@ -61,9 +61,10 @@ export class GameScene extends Phaser.Scene {
     this.book = new SpellBook(this);
     this.book.learn(BALANCE.spells.startWith);
     this.joystick = new Joystick(this);
+    this.fieldCards = new FieldCards(this);
     this.hud = new Hud(this);
     this.bosses = new Bosses(this);
-    this.stashBtn = new StashButton(this, () => openStash(this));
+    this.minimap = new Minimap(this);
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
@@ -95,17 +96,14 @@ export class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     if (this.state === 'play') {
-      this.realm.check(); // 돌파할 레벨이면 카드보다 먼저 돌파
       this.clock.feed(delta, PARAMS.speed);
-      // 레벨업 카드는 돌파 연출이 끝난 뒤에 (돌파가 먼저)
-      while (this.state === 'play' && (this.leveling.pending === 0 || this.realm.breaking) && this.clock.take()) this.step(STEP);
-      if (this.state === 'play' && this.leveling.pending > 0 && !this.realm.breaking) openCards(this);
+      while (this.state === 'play' && this.clock.take()) this.step(STEP);
     }
     const cam = this.cameras.main;
     this.bg.tilePositionX = cam.scrollX;
     this.bg.tilePositionY = cam.scrollY;
     this.hud.update();
-    this.stashBtn.update(this.stash.length);
+    this.minimap.update();
     this.perf.update(delta);
     this.debug?.update();
   }
@@ -113,7 +111,7 @@ export class GameScene extends Phaser.Scene {
   /** 게임 한 걸음 (dt: 게임 시간 ms, 늘 STEP) */
   step(dt) {
     const now = this.clock.now;
-    const move = this.auto ? this.auto.vector(dt) : this.joystick.vector;
+    const move = this.auto ? this.auto.vector(dt, this) : this.joystick.vector;
     this.player.update(dt, move, now);
     this.waves.update(dt, now);
     this.bosses.update(dt, now);
@@ -126,7 +124,13 @@ export class GameScene extends Phaser.Scene {
     this.book.update(dt, now);
     this.orbs.update(dt);
     this.chests.update(dt, now);
+    this.fieldCards.update(dt, now);
     this.realm.check();
+    // 레벨업 → 카드 무리를 바닥에 (돌파 연출이 먼저, 카드는 연출이 끝난 뒤)
+    while (this.leveling.pending > 0 && !this.realm.breaking) {
+      this.leveling.pending--;
+      this.fieldCards.dropGroup(now);
+    }
     this.effects.update(dt);
     this.stats.maxEnemies = Math.max(this.stats.maxEnemies, this.enemies.count);
 

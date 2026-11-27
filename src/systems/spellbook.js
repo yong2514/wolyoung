@@ -24,7 +24,6 @@ export class SpellBook {
     this.levels = {};      // { 법술: 단계 }
     this.order = [];       // 얻은 순서
     this.attacks = [];     // 공격 법술 객체
-    this.banned = new Set(); // 봉인한 법술 (이 판에서 카드로 안 나옴)
     this.fusedParts = new Set(); // 합일에 쓴 재료 (다시 안 나옴)
     this.damageMult = 1;   // 공격력 배율 (경지 돌파·동료 궁합에서 올림)
     this.cooldownMult = 1; // 공격 간격 배율 (속법)

@@ -173,7 +173,7 @@ export class EnemySystem {
     for (let i = 0; i < list.length; i++) {
       const e = list[i];
       if (e.inGrid && !e.def.boss) { // 보스는 작은 요괴에 밀리지 않는다
-        const n = grid.queryInto(e.x, e.y, e.radius * 2, near);
+        const n = grid.queryInto(e.x, e.y, e.radius * 2, near, 0); // 서로 밀어내기: 보스는 빠지므로 넓게 볼 필요 없음
         for (let j = 0; j < n; j++) {
           const o = near[j];
           if (o === e) continue;

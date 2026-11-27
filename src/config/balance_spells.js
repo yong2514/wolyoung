@@ -118,7 +118,5 @@ export const SUPPORT_BALANCE = {
 export const CARD_BALANCE = {
   rarity: { legend: 0.05, rare: 0.2 }, // 나올 확률 (나머지는 일반)
   gain: { common: 1, rare: 2, legend: 3 }, // 한 번에 오르는 단계
-  refreshPerRun: 1,    // 한 판에 카드 새로고침 횟수 (수련으로 늘릴 예정)
-  banishPerRun: 1,     // 한 판에 봉인 횟수 (봉인한 법술은 그 판에서 다시 안 나옴)
-  stashMax: 3,         // 보관함에 넣어 둘 수 있는 카드 수 (사용자 요청: 나중에 꺼내 쓰기)
+  // 새로고침·봉인·보관함은 카드를 바닥에서 줍는 방식으로 바꾸면서 없앴다 (사용자 요청)
 };

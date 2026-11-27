@@ -11,7 +11,8 @@
 ## 명령어 (Node는 PATH에 없을 수 있음: `C:\Program Files\nodejs`를 PATH 앞에 붙여 실행)
 - `npm run dev` 개발 서버(같은 와이파이 휴대폰: http://<노트북 IP>:5173)
 - `npm run check` 빌드 + Playwright 점검(자동 플레이 한 판, 같은 시드 재현, 잡귀 150마리 평균 50프레임). 단계 끝에 반드시 통과
-- `node scripts/shot.mjs <png> "<?값>" <ms> ["S.book.learn('lotus')"]` 빌드본 화면 사진(확인용, S=게임 장면). 모든 node를 끄는 taskkill은 쓰지 않는다(개발 서버도 꺼짐)
+- `node scripts/shot.mjs <png> "<?값>" <ms> ["S.book.learn('lotus')"]` 빌드본 화면 사진(확인용, S=게임 장면).
+- `node scripts/probe.mjs "<?값>" <초> "<식>"` 3초마다 게임 안 값을 찍기(밸런스 확인용). 모든 node를 끄는 taskkill은 쓰지 않는다(개발 서버도 꺼짐)
 - `npm run build` → `dist/`. main에 push하면 GitHub Actions가 GitHub Pages로 배포(`.github/workflows/deploy.yml`)
 - 배포 주소: https://yong2514.github.io/wolyoung/ (Vite base `/wolyoung/`, vite.config.js). gh는 `C:\Program Files\GitHub CLI`
 
@@ -35,14 +36,15 @@
 - `src/main.js` 게임 시작 설정
 - `src/config/` balance.js(밸런스), assets.js(이미지·소리 경로), display.js(화면 크기·색)
 - `src/data/` story.js(동료 대사), spells.js, enemies.js
-- `src/scenes/` BootScene(도형 그림, enemyTextures) → GameScene(한 판) + levelUpFlow(카드·보관함·합일)
+- `src/scenes/` BootScene(도형 그림: playerTexture·enemyTextures·bossTextures) → GameScene(한 판)
+- 레벨업 카드는 고르는 화면 없이 바닥에 3장 떨어지고 하나를 주우면 나머지는 사라짐(fieldCards). 작은 지도 ui/minimap.js (사용자 요청)
 - 요괴: enemies(풀·맞기·죽기)·enemyAI(행동·예고)·enemyBullets·waves(웨이브)·chests·realm(경지 돌파)·bosses(요장·요황)
 - `src/systems/` rng·clock·pool·grid·params(주소 값)·settings·audio(합성음)·effects(조각·숫자·flash·흔들림·진동)·enemies·player·perf·autoplay
   - orbs(영기 구슬)·leveling(영기·레벨)·cards(카드 3장 뽑기, cardRng)·spellbook(가진 법술·보조 능력치)
   - `spells/` base(단계별 수치 stat())·공격 9종 파일·fusions(합일 4종). 새 공격 법술 = 여기 클래스 + spellbook ATTACK_CLASSES + data/spells.js + balance_spells
   - 법술이 사라질 수 있으니(합일 재료·호신강기) 화면에 남는 그림이 있으면 destroy()를 둔다
   - 법술마다 최대 단계가 다를 수 있다(balance의 maxLevel → book.maxLevel(key)). 카드 3장은 같은 단계만(사용자 요청)
-- `src/ui/` joystick·hud·button·cards(레벨업 카드)·overlays(게임오버·일시정지·3초 세기)·debug(HTML 패널)
+- `src/ui/` joystick·hud·minimap·button·skillButton·targeting(멸요인)·overlays(판의 끝·일시정지·3초 세기)·debug(HTML 패널)
 - `scripts/check.mjs` 자동 점검, `docs/기획서.md` 기획 전문, `PROGRESS.md` 진행 상황
 
 ## 작업 방식

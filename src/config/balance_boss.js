@@ -14,7 +14,7 @@ export const BOSS_BALANCE = {
   },
 
   yohwang: {             // 요황: 최종 보스. 패턴 3개(돌진·탄막·내려찍기), 50%에서 2단계, 75초 광폭화, 120초 넘으면 패배
-    name: '요황', hp: 4000, speed: 52, damage: 25, radius: 48, orb: 0, // 체력: 보통 30~60초 안에 쓰러지게
+    name: '요황', hp: 6000, speed: 52, damage: 25, radius: 48, orb: 0, // 체력: 보통 30~60초 안에 쓰러지게
     patternGapMs: [2600, 1700],   // 패턴 사이 쉬는 시간 [1단계, 2단계]
     charge: { windupMs: 900, dashSpeed: 520, dashMs: 700 },
     volley: {                     // 탄막: 빛을 모았다가 둥글게 탄을 퍼뜨림

@@ -23,7 +23,7 @@ export const BALANCE = {
 
   spells: SPELL_BALANCE,      // 법술 수치 → balance_spells.js
   supports: SUPPORT_BALANCE,  // 보조 법술 → balance_spells.js
-  cards: CARD_BALANCE,        // 카드 등급·새로고침·봉인·보관함 → balance_spells.js
+  cards: CARD_BALANCE,        // 카드 등급 → balance_spells.js
   elixirHeal: 30,         // 고를 법술이 하나도 없을 때 나오는 '영약' 카드: 체력 회복량
 
   // 영기 구슬과 레벨업: 요괴가 구슬을 떨어뜨리고, 주워야 영기가 오른다.
@@ -41,7 +41,18 @@ export const BALANCE = {
     growth: 1.12,
     add: 7,               // 레벨마다 7개씩 더 (Lv2→3: 13, Lv3→4: 20, Lv5→6: 36 …) — 사용자 요청으로 간격 좁힘
   },
-  cardLockMs: 400,        // 카드가 뜬 뒤 이 시간 동안 터치를 받지 않음 (오터치 방지)
+  // 레벨업 카드는 바닥에 떨어진다 (사용자 요청: 고르는 화면 대신 주우러 간다)
+  fieldCards: {
+    minDist: 200,         // 주인공에게서 이 거리 이상 떨어진 곳에 (대부분 화면 밖)
+    maxDist: 450,         // 이 거리 안에
+    pickRadius: 18,       // 이만큼 닿으면 주움
+    max: 30,              // 바닥에 동시에 있을 수 있는 카드 수 (넘으면 바로 적용)
+  },
+  minimap: {              // 작은 지도 (오른쪽 위)
+    size: 96,             // 지도 크기 (픽셀)
+    range: 700,           // 지도 가운데에서 가장자리까지 = 월드 거리 이만큼
+    top: 62,              // 화면 위에서 떨어진 거리
+  },
 
   enemies: {
     // 플레이어를 똑바로 쫓아오는 요괴. 내 레벨이 fromLevel 이상이면 그 요괴가 나온다 (사용자 요청: 레벨이 오를수록 모양이 바뀌고 세진다)

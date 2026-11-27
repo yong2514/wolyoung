@@ -85,6 +85,13 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0x9fb8ff, 0.35); g.fillCircle(17, 17, 17);
       g.fillStyle(0xeef3ff, 1); g.fillPoints(pts, true);
     });
+    // 바닥에 떨어진 카드 (흰색 → 종류·등급 색으로 칠함)
+    tex('fieldCard', 24, 32, (g) => {
+      g.fillStyle(0xffffff, 1); g.fillRoundedRect(1, 1, 22, 30, 4);
+      g.fillStyle(0x9a9ab0, 1); g.fillRoundedRect(4, 4, 16, 24, 3);
+      g.fillStyle(0xffffff, 1);
+      g.fillPoints([{ x: 12, y: 8 }, { x: 17, y: 16 }, { x: 12, y: 24 }, { x: 7, y: 16 }], true);
+    });
     // 보물상자: 짙은 나무 + 금테
     tex('chest', 30, 24, (g) => {
       g.fillStyle(0x4a3424, 1); g.fillRoundedRect(1, 4, 28, 19, 3);

@@ -14,6 +14,7 @@ export class SpatialGrid {
     this.ox = 0;
     this.oy = 0;
     this.buf = [];
+    this.bodyPad = 0; // 가장 큰 요괴 반지름 (GameScene이 정함)
   }
 
   reset(ox, oy) {
@@ -39,8 +40,12 @@ export class SpatialGrid {
     o.inGrid = true;
   }
 
-  /** (x,y) 둘레 r 안의 칸에 든 것을 out에 담고 개수를 돌려준다 (거리는 부르는 쪽이 다시 잰다) */
-  queryInto(x, y, r, out) {
+  /**
+   * (x,y) 둘레 r 안의 칸에 든 것을 out에 담고 개수를 돌려준다 (거리는 부르는 쪽이 다시 잰다).
+   * 칸에는 몸 '가운데'만 들어가므로, 몸이 큰 요괴(보스 반지름 48)도 잡히게 bodyPad만큼 더 넓게 본다.
+   */
+  queryInto(x, y, r, out, pad = this.bodyPad) {
+    r += pad;
     const cs = this.cell;
     const x0 = Math.max(0, Math.floor((x - r - this.ox) / cs));
     const x1 = Math.min(this.cols - 1, Math.floor((x + r - this.ox) / cs));
@@ -57,7 +62,7 @@ export class SpatialGrid {
 
   /** 가장 가까운 살아 있는 것 (maxR 안) */
   nearest(x, y, maxR) {
-    const n = this.queryInto(x, y, maxR, this.buf);
+    const n = this.queryInto(x, y, maxR - this.bodyPad, this.buf);
     let best = null;
     let bestD = maxR * maxR;
     for (let i = 0; i < n; i++) {

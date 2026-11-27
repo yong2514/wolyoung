@@ -48,6 +48,7 @@ export class Bosses {
     const sc = this.scene;
     if (!this.mid && !this.midDone && now >= BALANCE.boss.midBossAtSec * 1000) this.mid = this.spawn('yojang', now);
     if (!this.king && !this.done && now >= BALANCE.waves.bossAtSec * 1000) {
+      this.scatterMinions();
       this.king = this.spawn('yohwang', now);
       this.kingAt = now;
     }
@@ -80,6 +81,20 @@ export class Bosses {
         sc.lose('요황이 봉인석을 부쉈다');
       }
     }
+  }
+
+  /** 요황 등장: 그 기운에 남은 요괴들이 흩어져 사라진다 (보스전에 집중. 처치로 세지 않음) */
+  scatterMinions() {
+    const sc = this.scene;
+    const list = sc.enemies.pool.active;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const e = list[i];
+      if (e.def.boss) continue;
+      sc.effects.burst(e.x, e.y, 0x6a4a86, 2);
+      sc.enemies.remove(e);
+    }
+    sc.enemyBullets.pool.active.slice().forEach((b) => sc.enemyBullets.free(b));
+    sc.cameras.main.flash(400, 60, 20, 60);
   }
 
   /** 남은 시간 (봉인석 붕괴까지, ms) */
