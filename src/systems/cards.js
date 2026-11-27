@@ -65,7 +65,7 @@ export function rollCards(book, rng, n = 3, opts = {}) {
   const groups = new Map(); // 지금 단계 → 법술들
   for (const key of Object.keys(SPELLS)) {
     const def = SPELLS[key];
-    if (def.fusion || book.fusedParts.has(key)) continue;
+    if (def.fusion || book.fusedParts.has(key) || def.noCard) continue;
     const L = book.level(key);
     if (L >= book.maxLevel(key)) continue;
     if (L === 0 && book.count(def.kind) >= slots[def.kind]) continue;

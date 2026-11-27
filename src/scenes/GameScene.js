@@ -143,7 +143,7 @@ export class GameScene extends Phaser.Scene {
   /** 게임 한 걸음 (dt: 게임 시간 ms, 늘 STEP) */
   step(dt) {
     const now = this.clock.now;
-    const move = this.auto ? this.auto.vector(dt, this) : this.joystick.vector;
+    const move = this.auto ? this.auto.vector(dt, this) : this.joystick.take(); // 사람: 손가락 따라 그대로
     this.player.update(dt, move, now);
     if (!this.player.jumping(now)) this.arena.block(this.player, this.player.radius); // 장애물은 점프로만 넘는다
     this.arena.clamp(this.player, this.player.radius); // 결계 벽 안에만

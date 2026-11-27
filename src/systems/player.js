@@ -43,17 +43,21 @@ export class Player {
     return true;
   }
 
+  /** move: 방향(-1~1, 자동 플레이) 또는 direct면 이번 걸음에 움직일 거리(px, 손가락 따라 움직이기) */
   update(dt, move, now) {
     const s = dt / 1000;
-    if (move.x || move.y) {
-      this.x += move.x * this.speed * s;
-      this.y += move.y * this.speed * s;
-      const m = Math.hypot(move.x, move.y);
-      this.dirX = move.x / m;
-      this.dirY = move.y / m;
-      if (Math.abs(move.x) > 0.05) this.sprite.flipX = move.x < 0; // 가는 쪽을 본다
+    const mx = move.direct ? move.x : move.x * this.speed * s;
+    const my = move.direct ? move.y : move.y * this.speed * s;
+    const m = Math.hypot(mx, my);
+    if (m > 0.05) {
+      this.x += mx;
+      this.y += my;
+      this.dirX = mx / m;
+      this.dirY = my / m;
+      if (Math.abs(mx) > 0.2) this.sprite.flipX = mx < 0; // 가는 쪽을 본다
       this.walkT += dt;
-    } else {
+      this.stillT = 0;
+    } else if ((this.stillT = (this.stillT ?? 0) + dt) > 80) { // 손가락이 잠깐 멈춘 것은 걷기로 본다
       this.walkT = 0;
     }
     // 걷기: 다리 그림 4장을 번갈아, 살짝 통통. 멈추면 서 있는 그림

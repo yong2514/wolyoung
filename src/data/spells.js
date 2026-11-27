@@ -21,7 +21,8 @@ export const SPELLS = {
     desc: '오른쪽 「멸」 버튼 → 원을 끌어 옮기고 「발동」하면 원 안의 요괴를 모두 없앤다.',
   },
 
-  moveSpeed: { name: '경신술', kind: 'support', desc: '이동 속도 +10%' },
+  // 경신술: 주인공이 손가락과 똑같이 움직이게 되면서(사용자 요청) 효과가 없어 카드로 안 나옴 (noCard)
+  moveSpeed: { name: '경신술', kind: 'support', desc: '이동 속도 +10%', noCard: true },
   attackSpeed: { name: '속법', kind: 'support', desc: '모든 공격 법술 간격 -8%' },
   maxHp: { name: '금강체', kind: 'support', desc: '최대 체력 +20 (늘어난 만큼 회복)' },
   multiShot: { name: '연사결', kind: 'support', desc: '날아가는 법술(비검·월륜) 수 +1, 속도 +10%' },
