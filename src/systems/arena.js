@@ -55,10 +55,22 @@ export class Arena {
     return o;
   }
 
+  /**
+   * 지금 화면에 보이는 범위. 카메라가 실제 그린 값(worldView)은 그리는 속도에 따라 달라지므로
+   * 주인공 위치로 계산한다 (카메라는 주인공을 따라가고 벽에서 멈춘다) → 같은 시드 = 같은 판
+   */
+  viewRect() {
+    const { width: VW, height: VH } = this.scene.scale.gameSize;
+    const p = this.scene.player;
+    const x = Math.min(this.x1 - VW, Math.max(this.x0, p.x - VW / 2));
+    const y = Math.min(this.y1 - VH, Math.max(this.y0, p.y - VH / 2));
+    return { x, y, right: x + VW, bottom: y + VH };
+  }
+
   /** 요괴가 나올 자리: 벽 안쪽 띠 위, 되도록 화면 밖 */
   spawnPoint(rng) {
     const ins = this.cfg.spawnInset;
-    const v = this.scene.cameras.main.worldView;
+    const v = this.viewRect();
     let pt = null;
     for (let i = 0; i < 6; i++) {
       const side = Math.floor(rng.next() * 4);

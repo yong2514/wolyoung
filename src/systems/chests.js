@@ -49,8 +49,8 @@ export class Chests {
     let msg;
     if (ups.length) {
       const key = ups[Math.floor(sc.rng.next() * ups.length)];
-      book.learn(key);
-      msg = `보물상자: ${sc.spellName(key)} ${book.level(key)}단계!`;
+      book.addTimed(key, 1, sc.clock.now); // 카드처럼 effectSec 동안
+      msg = `보물상자: ${sc.spellName(key)} ${book.level(key)}단계! (${BALANCE.fieldCards.effectSec}초)`;
     } else {
       sc.stats.seonok += BALANCE.chest.seonok;
       msg = `보물상자: 선옥 +${BALANCE.chest.seonok}`;

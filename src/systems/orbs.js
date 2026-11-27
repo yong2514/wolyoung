@@ -18,7 +18,8 @@ export class Orbs {
 
   get count() { return this.pool.count; }
 
-  drop(x, y, value) {
+  /** pulled면 처음부터 플레이어에게 날아온다 (보스가 흘린 영기) */
+  drop(x, y, value, pulled = false) {
     if (!value) return;
     if (this.count >= this.cfg.max) this.merge();
     const o = this.pool.get();
@@ -26,8 +27,8 @@ export class Orbs {
     o.x = x; o.y = y;
     o.value = value;
     o.serial = this.serial++;
-    o.pulled = false;
-    o.v = 0;
+    o.pulled = pulled;
+    o.v = pulled ? this.cfg.pullSpeed : 0;
     o.sprite.setPosition(x, y).setScale(value > 1 ? Math.min(2.2, 1 + Math.log2(value) * 0.25) : 1).setVisible(true);
   }
 

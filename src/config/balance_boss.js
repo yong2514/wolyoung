@@ -6,6 +6,8 @@ export const BOSS_BALANCE = {
   slowFloor: 0.7,        // 보스는 이보다 더 느려지지 않는다 (빙결)
   catchUpRange: 320,     // 플레이어와 이보다 멀면
   catchUpMult: 4,        // 이만큼 빠르게 따라온다 (보스가 화면 밖에 오래 있지 않게)
+  shedEveryRatio: 0.04,  // 보스가 최대 체력의 4%를 잃을 때마다 영기 구슬을 떨어뜨림 (카드 효과가 끝나도 보스전에 카드가 나오게)
+  shedOrb: 12,           // 그 구슬의 영기 (저절로 날아옴)
 
   yojang: {              // 요장: 중간 보스. 돌진 + 잡귀 부르기
     name: '요장', hp: 1500, speed: 58, damage: 20, radius: 34, orb: 25,
@@ -14,7 +16,7 @@ export const BOSS_BALANCE = {
   },
 
   yohwang: {             // 요황: 최종 보스. 패턴 3개(돌진·탄막·내려찍기), 50%에서 2단계, 75초 광폭화, 120초 넘으면 패배
-    name: '요황', hp: 6000, speed: 52, damage: 25, radius: 48, orb: 0, // 체력: 보통 30~60초 안에 쓰러지게
+    name: '요황', hp: 5000, speed: 52, damage: 25, radius: 48, orb: 0, // 체력: 보통 30~60초 안에 쓰러지게
     patternGapMs: [2600, 1700],   // 패턴 사이 쉬는 시간 [1단계, 2단계]
     charge: { windupMs: 900, dashSpeed: 520, dashMs: 700 },
     volley: {                     // 탄막: 빛을 모았다가 둥글게 탄을 퍼뜨림

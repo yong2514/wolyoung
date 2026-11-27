@@ -7,7 +7,7 @@ export class DebugPanel {
   constructor(scene) {
     this.scene = scene;
     const root = document.createElement('div');
-    root.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left) + 4px);top:calc(env(safe-area-inset-top) + 96px);'
+    root.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left) + 4px);top:calc(env(safe-area-inset-top) + 240px);'
       + 'z-index:10;font:12px system-ui,sans-serif;color:#dfe4f2;background:rgba(11,15,38,.7);'
       + 'padding:4px;border-radius:6px;max-width:220px;user-select:none;';
     this.info = document.createElement('div');

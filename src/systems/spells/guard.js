@@ -21,10 +21,10 @@ export class Guard extends AttackSpell {
       if (this.tint) sprite.setTint(this.tint).setScale(this.stat('orbRadius') / 11);
       this.orbs.push({ sprite, hitsLeft: 0 });
     }
-    for (const o of this.orbs) {
-      o.hitsLeft = this.stat('hitsPerOrb');
-      o.sprite.setVisible(true).setAlpha(1);
-    }
+    this.orbs.forEach((o, i) => { // 단계가 내려가면(카드 효과 끝) 남는 구슬은 숨긴다
+      o.hitsLeft = i < n ? this.stat('hitsPerOrb') : 0;
+      o.sprite.setVisible(i < n).setAlpha(1);
+    });
   }
 
   update(dt, now) {

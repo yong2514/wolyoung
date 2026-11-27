@@ -25,6 +25,7 @@ import { FieldCards } from '../systems/fieldCards.js';
 import { Joystick } from '../ui/joystick.js';
 import { Hud } from '../ui/hud.js';
 import { Minimap } from '../ui/minimap.js';
+import { BuffList } from '../ui/buffs.js';
 import { DebugPanel } from '../ui/debug.js';
 import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
 
@@ -67,11 +68,12 @@ export class GameScene extends Phaser.Scene {
     this.hud = new Hud(this);
     this.bosses = new Bosses(this);
     this.minimap = new Minimap(this);
+    this.buffList = new BuffList(this);
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
     this.debug = PARAMS.debug ? new DebugPanel(this) : null;
-    if (PARAMS.fusions) FUSIONS.forEach((k) => this.book.fuse(k)); // 점검용: 합일 4종을 처음부터
+    if (PARAMS.fusions) FUSIONS.forEach((k) => this.book.fuse(k, 0, true)); // 점검용: 합일 4종을 처음부터 (늘 유지)
     if (PARAMS.fill) {
       this.enemies.keepAtLeast = PARAMS.fill;
       this.enemies.fill(PARAMS.fill, 0);
@@ -106,6 +108,7 @@ export class GameScene extends Phaser.Scene {
     this.bg.tilePositionY = cam.scrollY;
     this.hud.update();
     this.minimap.update();
+    this.buffList.update();
     this.perf.update(delta);
     this.debug?.update();
   }

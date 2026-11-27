@@ -48,6 +48,7 @@ export class EnemySystem {
     e.flashUntil = 0; e.guardNext = 0; e.moonNext = 0;
     e.slowUntil = 0; e.slowMult = 1; e.stunUntil = 0; e.tintState = 0;
     e.kbx = 0; e.kby = 0;
+    e.shed = undefined;
     resetAi(e);
     e.sprite.setTexture(def.texture).setPosition(x, y).setScale(elite ? E.scale : 1).clearTint().setVisible(true);
     e.glow.setVisible(elite).setScale(e.radius / 20);
@@ -222,10 +223,23 @@ export class EnemySystem {
     sfx.play('hit');
     const ls = this.scene.book.lifesteal; // 흡혈공
     if (ls) this.scene.player.heal(dealt * ls);
+    if (e.def.boss) this.shedOrbs(e); // 보스는 맞을 때마다 영기를 흘린다 → 보스전에도 카드가 나온다
     if (e.hp <= 0) { this.kill(e); return true; }
     e.flashUntil = now + BALANCE.feel.hitFlashMs;
     this.updateTint(e, now);
     return false;
+  }
+
+  /** 보스: 최대 체력의 shedEveryRatio만큼 잃을 때마다 영기 구슬을 떨어뜨린다 */
+  shedOrbs(e) {
+    const B = BALANCE.boss;
+    const step = e.maxHp * B.shedEveryRatio;
+    e.shed = e.shed ?? step;
+    while (e.maxHp - Math.max(0, e.hp) >= e.shed) {
+      e.shed += step;
+      const a = this.rng.next() * TAU;
+      this.scene.orbs.drop(e.x + Math.cos(a) * (e.radius + 20), e.y + Math.sin(a) * (e.radius + 20), B.shedOrb, true); // 저절로 날아옴
+    }
   }
 
   /** 경지 돌파: (x,y) 둘레 요괴를 바깥으로 날리고 피해 */
