@@ -42,11 +42,23 @@ try {
   const b = await runOnce('같은 시드 다시', '?debug=1&auto=1&seed=12345', 240000);
   const sig = (r) => r && `${r.timeSec}/${r.kills}/${r.maxEnemies}/${r.level}/${r.spells}/${r.reason}`;
   if (a && b && sig(a) !== sig(b)) problems.push(`[같은 시드] 결과가 다름: ${sig(a)} ≠ ${sig(b)}`);
-  if (a && (a.firstCardSec === null || a.firstCardSec > 20)) problems.push(`[자동 플레이] 첫 카드 ${a.firstCardSec}초 (20초 안이어야 함)`);
-  // 한 판 끝까지 (무적): 60초 안에 축기 돌파, 요장·요황을 거쳐 클리어해야 함 (어떤 판도 6분을 넘지 않음)
-  const wv = await runOnce('무적 한 판', '?debug=1&auto=1&god=1&speed=4&autoMax=400&seed=21', 300000);
-  if (wv && wv.reason !== '클리어') problems.push(`[무적 한 판] 끝: ${wv.reason} (클리어여야 함)`);
+  // '20초 안 첫 카드'는 첫 판 각본 조건(아래에서 확인). 일반 판(무작위 이동)은 25초 안
+  if (a && (a.firstCardSec === null || a.firstCardSec > 25)) problems.push(`[자동 플레이] 첫 카드 ${a.firstCardSec}초 (25초 안이어야 함)`);
+  // 한 판 끝까지 (무적): 60초 안에 축기 돌파, 장소 4곳의 대형 요괴를 모두 쓰러뜨리고 클리어해야 함
+  const wv = await runOnce('무적 한 판', '?debug=1&auto=1&god=1&speed=4&autoMax=900&seed=21', 420000);
+  if (wv && (wv.reason !== '클리어' || wv.place !== 4)) problems.push(`[무적 한 판] 끝: ${wv.reason}, 장소 ${wv.place} (장소 4에서 클리어여야 함)`);
   if (wv && !(wv.realmSecs[0] <= 60)) problems.push(`[무적 한 판] 축기 돌파 ${wv.realmSecs[0] ?? '없음'}초 (60초 안이어야 함)`);
+  // 첫 판 각본: 첫 카드 20초 안·희귀 이상, 축기 60초 안, 봉인의 일격 → 각본 부활 → 클리어
+  const fr = await runOnce('첫 판 각본', '?debug=1&auto=1&first=1&speed=4&autoMax=900', 420000);
+  if (fr) {
+    if (fr.reason !== '클리어') problems.push(`[첫 판 각본] 끝: ${fr.reason} (클리어여야 함)`);
+    if (!fr.sealStruck || !fr.scriptRevived) problems.push('[첫 판 각본] 봉인의 일격·각본 부활이 일어나지 않음');
+    if (!(fr.firstCardSec <= 20) || !fr.firstCardRare) problems.push(`[첫 판 각본] 첫 카드 ${fr.firstCardSec}초·희귀 ${fr.firstCardRare}`);
+    if (!(fr.realmSecs[0] <= 60)) problems.push(`[첫 판 각본] 축기 돌파 ${fr.realmSecs[0] ?? '없음'}초`);
+  }
+  // 첫 판에서 가만히 서 있어도 죽지 않고 대형 요괴까지 간다
+  const st = await runOnce('첫 판 가만히', '?debug=1&auto=1&first=1&still=1&speed=4&autoMax=80', 300000);
+  if (st && (!st.bossesSeen || st.revives > 0 || st.reason === '사망')) problems.push(`[첫 판 가만히] 대형 요괴까지 못 감 (${st.reason}, ${st.timeSec}초)`);
   await runOnce('합일 4종', '?debug=1&auto=1&god=1&fusions=1&fill=100&speed=4&autoMax=40&seed=3', 120000);
   const perf = await runOnce('성능 150마리', '?debug=1&auto=1&god=1&fill=150&speed=1&autoMax=20&seed=7', 90000);
   if (perf && perf.avgFps < FPS_GOAL) problems.push(`[성능 150마리] 평균 프레임 ${perf.avgFps} (목표 ${FPS_GOAL} 이상)`);

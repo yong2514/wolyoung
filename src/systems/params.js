@@ -20,5 +20,7 @@ export const PARAMS = {
   seed: q.has('seed') ? int('seed', 1, 0, 4294967295) : null,
   fill: debug ? int('fill', 0, 0, 300) : 0,      // 요괴를 이 수만큼 유지 (성능 시험)
   fusions: debug && q.get('fusions') === '1',    // 합일 4종을 처음부터 가짐 (점검용)
+  first: debug && q.get('first') === '1',        // 첫 판 각본으로 시험 (저장은 안 바꿈)
+  still: auto && q.get('still') === '1',         // 자동 플레이가 가만히 서 있기 (첫 판 점검: 죽지 않고 보스까지)
   autoMax: int('autoMax', BALANCE.run.autoMaxSec, 5, 600),
 };

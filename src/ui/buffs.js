@@ -27,12 +27,21 @@ export class BuffList {
     const book = sc.book;
     const now = sc.clock.now;
     const full = BALANCE.fieldCards.effectSec * 1000;
-    const keys = book.order.slice(0, ROWS);
+    const veil = sc.player.veiled(now); // 은형부는 맨 위 줄
+    const keys = (veil ? ['veil'] : []).concat(book.order).slice(0, ROWS);
     this.rows.forEach((r, i) => {
       const key = keys[i];
       const on = !!key;
       r.text.setVisible(on);
       if (!on) { r.bg.setVisible(false); r.bar.setVisible(false); return; }
+      if (key === 'veil') {
+        if (r.label !== '은형') { r.label = '은형'; r.text.setText('은형부'); }
+        r.bg.setVisible(true);
+        r.bar.setVisible(true);
+        r.bar.width = BAR_W * Math.max(0, (sc.player.veilUntil - now) / BALANCE.veil.durationMs);
+        r.bar.fillColor = 0xd9ccff;
+        return;
+      }
       const label = `${SPELLS[key].name} ${book.level(key)}`;
       if (r.label !== label) { r.label = label; r.text.setText(label); }
       const left = book.timeLeft(key, now);

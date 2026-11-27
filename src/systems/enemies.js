@@ -15,7 +15,8 @@ export class EnemySystem {
     this.rng = scene.rng;
     this.cap = BALANCE.limits.enemyCap;
     this.keepAtLeast = 0; // 디버그: 이 수만큼 계속 채움
-    this.hpMult = 1;      // 난이도 배율 (첫 판 등, 4단계)
+    this.hpMult = 1;      // 체력 배율 (첫 판·2판·3판 난이도 × 장소마다 강해짐)
+    this.dmgMult = 1;     // 공격력 배율 (장소마다 강해짐)
     this.nextId = 1;
     this.near = [];
     this.pool = new Pool(() => ({
@@ -42,7 +43,7 @@ export class EnemySystem {
     e.hp = def.boss ? def.hp * this.hpMult : def.hp * growth * this.hpMult * (elite ? E.hpMult : 1);
     e.maxHp = e.hp;
     e.speed = def.speed * (1 + (this.rng.next() - 0.5) * BALANCE.enemies.speedJitter);
-    e.damage = def.damage * (elite ? E.damageMult : 1);
+    e.damage = def.damage * (elite ? E.damageMult : 1) * this.dmgMult;
     e.radius = def.radius * (elite ? E.scale : 1);
     e.id = this.nextId++;
     e.alive = true;
@@ -190,6 +191,7 @@ export class EnemySystem {
           }
         }
       }
+      this.scene.arena.block(e, e.radius * 0.8); // 장애물은 못 지나감 (미끄러지듯 돌아감)
       this.scene.arena.clamp(e, e.radius); // 결계 벽 안에만
       e.sprite.setPosition(e.x, e.y);
       e.shadow.setPosition(e.x, e.y + e.radius * 0.85);
@@ -203,7 +205,7 @@ export class EnemySystem {
       const dx = e.x - p.x;
       const dy = e.y - p.y;
       const r = e.radius + p.radius;
-      if (dx * dx + dy * dy < r * r) { p.hurt(e.damage, now); break; }
+      if (dx * dx + dy * dy < r * r) { p.hurt(e.damage, now, true); break; } // 몸으로 부딪힘 (점프·은형 중엔 안 다침)
     }
   }
 

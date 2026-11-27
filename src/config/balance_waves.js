@@ -38,11 +38,10 @@ export const ELITE = { hpMult: 7, damageMult: 1.4, scale: 1.5, orbMult: 4 };
 // 보물상자: 가진 법술 하나 즉시 강화 (올릴 게 없으면 선옥)
 export const CHEST = { radius: 18, seonok: 15 };
 
-// 웨이브 7개 × 30초 = 3분 30초, 그다음 보스(3b). mix는 요괴 종류 비율 (chaser = 잡귀~혈귀)
+// 웨이브 (30초씩): 장소마다 2개씩 쓴다 (systems/waves.js). 마지막은 대형 요괴가 나왔을 때. mix는 요괴 종류 비율 (chaser = 잡귀~혈귀)
 // rate: 1초에 나오는 수, elites: 그 웨이브에서 정예가 나오는 초, chests: 웨이브 시작 때 놓는 보물상자 수
 export const WAVES = {
   waveSec: 30,
-  bossAtSec: 210,
   list: [
     { label: '몸풀기', rate: 1.6, mix: { chaser: 1 } },
     { label: '몸풀기', rate: 2.4, mix: { chaser: 0.8, charger: 0.2 } },
@@ -60,9 +59,9 @@ export const REALMS = {
   list: [
     { name: '연기', level: 1, color: 0xb9a6e8 },
     { name: '축기', level: 3, color: 0x8fd0ff },
-    { name: '금단', level: 7, color: 0xffd36a },
-    { name: '원영', level: 11, color: 0x9fffd0 },
-    { name: '화신', level: 14, color: 0xffffff },
+    { name: '금단', level: 12, color: 0xffd36a }, // 장소마다 하나씩 펼침 (장소 4곳 구조)
+    { name: '원영', level: 22, color: 0x9fffd0 },
+    { name: '화신', level: 33, color: 0xffffff }, // 마지막 요황 전쯤
   ],
   slowMs: 1500,         // 느려지는 시간 (실제 시간)
   slowScale: 0.3,       // 그동안 게임 속도

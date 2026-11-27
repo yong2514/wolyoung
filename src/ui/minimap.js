@@ -39,7 +39,9 @@ export class Minimap {
 
     const blink = Math.floor(sc.time.now / 250) % 2;
     for (const c of sc.chests.pool.active) this.dot(c.x, c.y, 0xffd36a, 2);
-    for (const b of [sc.bosses.mid, sc.bosses.king]) if (b?.alive) this.dot(b.x, b.y, 0xff5a3c, 4);
+    for (const o of sc.arena.obstacles) this.dot(o.x, o.y, 0x8a8a9a, 1.2); // 장애물 (작은 회색 점)
+    const b = sc.bosses.current;
+    if (b?.alive) this.dot(b.x, b.y, 0xff5a3c, 4);
     for (const o of sc.fieldCards.list) {
       if (!o.card) continue;
       const gold = o.card.rarity === 'legend' || o.card.kind === 'fusion';

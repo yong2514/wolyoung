@@ -1,3 +1,5 @@
+import { PARAMS } from './params.js';
+
 // 자동 플레이 (?debug=1&auto=1): 바닥에 카드가 있으면 가장 가까운 카드를 주우러 가고,
 // 보스가 있으면 보스 둘레를 돌며 싸우고, 아니면 무작위로 움직인다. 부활은 4단계에서 붙인다.
 export class AutoPlayer {
@@ -8,6 +10,15 @@ export class AutoPlayer {
   }
 
   vector(dt, scene) {
+    if (PARAMS.still) { this.vec.x = 0; this.vec.y = 0; return this.vec; } // 가만히 서 있기
+    const v = this.choose(dt, scene);
+    // 가는 쪽 바로 앞에 장애물이 있으면 점프
+    const p = scene.player;
+    if ((v.x || v.y) && scene.arena.obstacleNear(p.x + v.x * 34, p.y + v.y * 34, 4)) p.jump(scene.clock.now);
+    return v;
+  }
+
+  choose(dt, scene) {
     const target = this.oldestCard(scene);
     if (target) {
       const p = scene.player;
@@ -20,7 +31,7 @@ export class AutoPlayer {
       return this.vec;
     }
     // 보스가 있으면 보스 둘레(약 200)를 돌며 싸운다
-    const boss = scene.bosses.king?.alive ? scene.bosses.king : scene.bosses.mid?.alive ? scene.bosses.mid : null;
+    const boss = scene.bosses.current?.alive ? scene.bosses.current : null;
     if (boss) {
       const p = scene.player;
       const dx = boss.x - p.x;

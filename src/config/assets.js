@@ -44,4 +44,6 @@ export const SOUNDS = {
   boom: null,     // 부적 폭발·폭귀 폭발
   breakthrough: null, // 경지 돌파
   travel: null,   // 다음 장소로
+  jump: null,     // 점프
+  veil: null,     // 은형부
 };

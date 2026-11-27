@@ -3,6 +3,7 @@ import { makeEnemyTextures } from './enemyTextures.js';
 import { makePlayerTexture } from './playerTexture.js';
 import { makeBossTextures } from './bossTextures.js';
 import { makeGroundTextures } from './groundTextures.js';
+import { makeCompanionTextures } from './companionTextures.js';
 
 // 그림 대신 쓸 도형을 미리 그려 둔다 (나중에 그림 파일로 바꿀 때: config/assets.js)
 export class BootScene extends Phaser.Scene {
@@ -35,6 +36,7 @@ export class BootScene extends Phaser.Scene {
       g.strokePoints([{ x: 8, y: 1 }, { x: 14, y: 8 }, { x: 8, y: 15 }, { x: 2, y: 8 }], true);
     });
     makeGroundTextures(this, tex); // 바닥·장식·그림자·화면 가장자리
+    makeCompanionTextures(this, tex); // 동료 서하·손가락 안내·붉은 가장자리
     // 뇌부 낙뢰: 위에서 내려오는 지그재그 (아래 끝이 기준점)
     tex('bolt', 30, 220, (g) => {
       const pts = [[16, 0], [8, 50], [20, 90], [6, 140], [18, 180], [15, 220]];

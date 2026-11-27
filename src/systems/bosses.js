@@ -6,14 +6,17 @@ const WARN = 0xff9a2e;   // 예고 (주황)
 const DANGER = 0xff5a3c; // 공격 (붉은)
 const TAU = Math.PI * 2;
 
-// 보스: 요장(중간, 2:00)과 요황(최종, 3:30). 보스 몸은 요괴 풀(enemies)에 들어 있어 법술이 그대로 맞는다.
-// 여기서는 움직임·패턴·예고·2단계·광폭화·120초 제한·머리 위 체력 막대를 맡는다.
+// 대형 요괴 (사용자 요청): 장소마다 1분이 지나면 그 장소의 대형 요괴가 나오고, 쓰러뜨리면 다음 장소로.
+//  1~3번째 장소: 요장 (장소마다 강해짐), 마지막 장소: 요황(최종). 보스 몸은 요괴 풀(enemies)에 들어 있어 법술이 그대로 맞는다.
+//  여기서는 등장·움직임·패턴·예고·2단계·광폭화·120초 제한(요황)·머리 위 체력 막대·다음 장소로 넘기기를 맡는다.
 export class Bosses {
   constructor(scene) {
     this.scene = scene;
-    this.mid = null;      // 요장 (요괴 객체)
-    this.king = null;     // 요황
+    this.current = null;  // 지금 장소의 대형 요괴 (요괴 객체)
+    this.mid = null;      // 요장일 때 = current
+    this.king = null;     // 요황일 때 = current
     this.kingAt = 0;      // 요황이 나온 시각
+    this.travelAt = 0;    // 이때 다음 장소로 (대형 요괴를 쓰러뜨린 뒤)
     this.phase2 = false;
     this.enraged = false;
     this.done = false;    // 요황 처치 또는 패배로 끝남
@@ -37,20 +40,31 @@ export class Bosses {
     const e = en.spawn(key, pt.x, pt.y, now);
     en.cap -= 1;
     e.ai.next = now + 1500; // 처음 패턴까지
+    sc.stats.bosses = (sc.stats.bosses ?? 0) + 1;
     e.ai.summonAt = now + (BALANCE.boss[key].summonEveryMs ?? 1e9);
     sc.effects.shake('hurt');
     sfx.play('breakthrough');
-    sc.hud.banner(`${BALANCE.boss[key].name} 출현!`, key === 'yohwang' ? '봉인석을 지켜라' : '중간 보스');
+    sc.hud.banner(`${BALANCE.boss[key].name} 출현!`, key === 'yohwang' ? '봉인석을 지켜라' : `${sc.arena.place.name}의 대형 요괴`);
     return e;
   }
 
   update(dt, now) {
     const sc = this.scene;
-    if (!this.mid && !this.midDone && now >= BALANCE.boss.midBossAtSec * 1000) this.mid = this.spawn('yojang', now);
-    if (!this.king && !this.done && now >= BALANCE.waves.bossAtSec * 1000) {
+    const ar = sc.arena;
+    // 장소의 시간이 끝나면 그 장소의 대형 요괴
+    if (!this.current && !this.done && ar.placeTime(now) >= ar.cfg.placeSec * 1000) {
+      const key = ar.place.boss;
       this.scatterMinions();
-      this.king = this.spawn('yohwang', now);
-      this.kingAt = now;
+      this.current = this.spawn(key, now);
+      if (key === 'yohwang') { this.king = this.current; this.kingAt = now; } else this.mid = this.current;
+    }
+    // 대형 요괴를 쓰러뜨리고 잠시 뒤 다음 장소로
+    if (this.travelAt && now >= this.travelAt) {
+      this.travelAt = 0;
+      this.current = null;
+      this.mid = null;
+      ar.travel();
+      return;
     }
     if (this.mid?.alive) this.stepMid(this.mid, dt, now);
     if (this.king?.alive) this.stepKing(this.king, dt, now);
@@ -83,7 +97,7 @@ export class Bosses {
     }
   }
 
-  /** 요황 등장: 그 기운에 남은 요괴들이 흩어져 사라진다 (보스전에 집중. 처치로 세지 않음) */
+  /** 대형 요괴 등장: 그 기운에 남은 요괴들이 흩어져 사라진다 (보스전에 집중. 처치로 세지 않음) */
   scatterMinions() {
     const sc = this.scene;
     const list = sc.enemies.pool.active;
@@ -242,7 +256,7 @@ export class Bosses {
       z.r = sl.radius;
       z.warn = sl.warnMs;
       z.at = now + sl.warnMs;
-      z.damage = sl.damage * this.rageMult();
+      z.damage = sl.damage * this.rageMult() * sc.enemies.dmgMult;
       z.fill.setPosition(z.x, z.y).setRadius(z.r).setFillStyle(WARN, 0.15).setVisible(true);
       z.ring.setPosition(z.x, z.y).setScale(z.r / 32).setTint(WARN).setAlpha(0.8).setVisible(true);
     }
@@ -277,14 +291,14 @@ export class Bosses {
 
   onKilled(key, x, y) {
     const sc = this.scene;
-    if (key === 'yojang') {
-      this.midDone = true;
+    this.clearZones();
+    if (key === 'yojang') { // 이 장소의 싸움 끝 → 잠시 뒤 다음 장소로
       sc.chests.drop(x, y);
-      sc.hud.banner('요장 격파!', '보물상자를 열어라');
+      sc.hud.banner('요장 격파!', '곧 다음 장소로 간다');
+      this.travelAt = sc.clock.now + sc.arena.cfg.travelDelayMs;
       return;
     }
     this.done = true;
-    this.clearZones();
     sc.clear();
   }
 }

@@ -29,6 +29,7 @@ export class SpellBook {
     this.order = [];       // 얻은 순서
     this.attacks = [];     // 공격 법술 객체
     this.fusedParts = new Set(); // 지금 합일에 쓰인 재료 (합일이 끝날 때까지 카드로 안 나옴)
+    this.fusedBase = {};   // { 합일: { 재료: 늘 있던 단계 } } 합일이 끝나면 돌려줌
     this.damageMult = 1;   // 공격력 배율 (경지 돌파·동료 궁합에서 올림)
     this.cooldownMult = 1; // 공격 간격 배율 (속법)
     this.extraShots = 0;   // 날아가는 법술 추가 수 (연사결)
@@ -96,10 +97,13 @@ export class SpellBook {
 
   /** 합일: 재료 두 법술을 없애고 합일 법술을 얻는다 (효과 시간 동안, permanent면 늘 — 점검용) */
   fuse(key, now, permanent = false) {
+    const keepBase = {}; // 재료의 늘 있는 단계(시작 비검 1단계 등)는 합일이 끝나면 돌려준다
     for (const part of SPELLS[key].fusion) {
+      if (this.base[part]) keepBase[part] = this.base[part];
       this.forget(part);
       this.fusedParts.add(part);
     }
+    this.fusedBase[key] = keepBase;
     if (permanent) { this.base[key] = 1; this.refresh(key); } else this.addTimed(key, 1, now);
   }
 
@@ -118,7 +122,14 @@ export class SpellBook {
       this.attacks[i].destroy?.();
       this.attacks.splice(i, 1);
     }
-    if (SPELLS[key].fusion) for (const part of SPELLS[key].fusion) this.fusedParts.delete(part); // 합일이 끝나면 재료가 다시 나옴
+    if (SPELLS[key].fusion) { // 합일이 끝나면 재료가 다시 카드로 나오고, 늘 있던 단계는 돌아온다
+      const keep = this.fusedBase[key] ?? {};
+      delete this.fusedBase[key];
+      for (const part of SPELLS[key].fusion) {
+        this.fusedParts.delete(part);
+        if (keep[part]) { this.base[part] = keep[part]; this.refresh(part); }
+      }
+    }
     if (SPELLS[key].kind === 'support') this.applySupports();
   }
 
@@ -133,7 +144,7 @@ export class SpellBook {
     this.lifesteal = S.lifesteal.perLevel * this.level('lifesteal');
     sc.orbs.magnetRange = BALANCE.orbs.magnetRange * (1 + S.magnet.perLevel * this.level('magnet'));
     sc.leveling.gainMult = 1 + S.xpGain.perLevel * this.level('xpGain');
-    const maxHp = BALANCE.player.maxHp + S.maxHp.perLevel * this.level('maxHp');
+    const maxHp = BALANCE.player.maxHp + S.maxHp.perLevel * this.level('maxHp') + (p.bonusHp || 0); // bonusHp: 장소마다 강해짐
     if (maxHp > p.maxHp) p.hp += maxHp - p.maxHp;
     p.maxHp = maxHp;
     p.hp = Math.min(p.hp, maxHp);

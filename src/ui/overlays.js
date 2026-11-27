@@ -24,7 +24,7 @@ export function showGameOver(scene, info, onRetry) {
   parts.push(label(scene, H * 0.3, info.title ?? '쓰러졌다…', '40px', info.color ?? '#dfe4f2'));
   if (info.sub) parts.push(label(scene, H * 0.3 + 48, info.sub, '17px', '#dfe4f2'));
   parts.push(label(scene, H * 0.3 + (info.sub ? 86 : 60), `버틴 시간 ${formatTime(info.timeMs)}  ·  처치 ${info.kills}`, '18px', '#b9a6e8'));
-  parts.push(makeButton(scene, W / 2, H - 140, W - 60, 88, '다시 도전', onRetry, { fontSize: '32px', delayMs: TAP_DELAY }));
+  parts.push(makeButton(scene, W / 2, H - 140, W - 60, 88, info.button ?? '다시 도전', onRetry, { fontSize: '32px', delayMs: TAP_DELAY }));
   return { destroy() { parts.forEach((p) => p.destroy()); } };
 }
 

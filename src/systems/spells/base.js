@@ -19,7 +19,11 @@ export class AttackSpell {
     return Array.isArray(v) ? v[this.level - 1] : v;
   }
 
-  damage() { return this.stat('damage') * this.book.damageMult; }
+  /** 피해: 공격력 배율 × (함께하는 동료의 궁합 법술이면 +20%) */
+  damage() {
+    const syn = this.scene.companion?.synergy === this.key ? BALANCE.companion.synergyBonus : 1;
+    return this.stat('damage') * this.book.damageMult * syn;
+  }
 
   cooldown() { return this.stat('cooldownMs') * this.book.cooldownMult; }
 

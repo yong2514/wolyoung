@@ -22,6 +22,8 @@ const RECIPES = {
   boom: { type: 'square', f0: 160, f1: 40, dur: 0.25, vol: 0.08, noise: 0.8 },
   breakthrough: { type: 'triangle', f0: 260, f1: 1040, dur: 1.2, vol: 0.18, chord: [1.25, 1.5, 2] },
   travel: { type: 'sine', f0: 880, f1: 220, dur: 0.8, vol: 0.12, chord: [1.5] },
+  jump: { type: 'sine', f0: 420, f1: 900, dur: 0.15, vol: 0.06 },
+  veil: { type: 'sine', f0: 1200, f1: 600, dur: 0.5, vol: 0.08, chord: [1.5] },
 };
 
 const LIMIT = { perSound: 4, total: 14, minGap: 0.035 }; // 같은 소리 동시 4개, 전체 14개, 같은 소리 간격 35ms

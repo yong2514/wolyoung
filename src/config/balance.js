@@ -3,10 +3,22 @@
 import { SPELL_BALANCE, SUPPORT_BALANCE, CARD_BALANCE } from './balance_spells.js';
 import { ENEMY_TYPES, ELITE, CHEST, WAVES, REALMS } from './balance_waves.js';
 import { BOSS_BALANCE } from './balance_boss.js';
+import { COMPANION_BALANCE, REVIVE_BALANCE, FIRST_RUN } from './balance_companion.js';
+import { ARENA_BALANCE, JUMP_BALANCE, VEIL_BALANCE } from './balance_arena.js';
 
 export const BALANCE = {
-  /** 첫 판·2판·3판 난이도 비율 (요괴 체력과 수에 곱한다). 4판부터는 1.0 — 4단계에서 사용 */
+  /** 첫 판·2판·3판 난이도 비율 (요괴 체력과 수에 곱한다). 4판부터는 1.0 */
   runDifficulty: [0.6, 0.75, 0.9],
+  // 점수 = 처치 수 + 버틴 초 × perSecond + 경지 보너스 + 클리어 보너스 (× 심마 배율, 6b)
+  score: {
+    perSecond: 10,
+    realmBonus: [0, 200, 500, 1000, 2000], // 연기·축기·금단·원영·화신에 닿았을 때
+    clearBonus: 3000,     // 요황 처치
+    keepRecords: 10,      // 이 기기 순위표에 남기는 기록 수 (사용자 요청: 게임 끝에 순위)
+  },
+  companion: COMPANION_BALANCE, // 동료 → balance_companion.js
+  revive: REVIVE_BALANCE,       // 인연 부활 → balance_companion.js
+  firstRun: FIRST_RUN,          // 첫 판 각본 → balance_companion.js
 
   player: {
     maxHp: 100,           // 시작 최대 체력
@@ -40,7 +52,7 @@ export const BALANCE = {
     // 카드 효과가 45초만 가므로(사용자 요청) 카드가 꾸준히 나오게 뒤로 갈수록 덜 가파르게
     base: 5,              // Lv1→2: 구슬 5개
     growth: 1.0,
-    add: 4,               // 레벨마다 4개씩 더 (Lv2→3: 9, Lv5→6: 21, Lv10→11: 41, Lv15→16: 61)
+    add: 3,               // 레벨마다 3개씩 더 (Lv2→3: 8, Lv10→11: 35, Lv20→21: 65, Lv30→31: 95)
   },
   // 레벨업 카드는 바닥에 떨어진다 (사용자 요청: 고르는 화면 대신 주우러 간다)
   fieldCards: {
@@ -55,22 +67,9 @@ export const BALANCE = {
     top: 62,              // 화면 위에서 떨어진 거리
   },
 
-  // 활동 공간 (사용자 요청): 결계 벽으로 둘러싼 장소. 시간이 지나면 다음 장소로 옮겨 간다
-  arena: {
-    width: 1400,          // 장소 너비 (화면 390의 약 3.6배)
-    height: 1900,         // 장소 높이 (화면 844의 약 2.3배)
-    spawnInset: 30,       // 요괴는 벽에서 이만큼 안쪽, 화면 밖에서 나온다
-    fadeMs: 400,          // 장소를 옮길 때 어두워지는·밝아지는 시간 (실제 시간)
-    decor: 34,            // 장소마다 깔리는 장식(바위·연꽃·풀) 수
-    // atSec: 이 시간(초)부터 이 장소. bg 바닥(돌판) 색, wall 벽 색,
-    // decor 장식 종류(모나고 땅에 붙은 사물만: 요괴·구슬과 헷갈리지 않게), light 장식에 비치는 빛 색(어둡게 눌러 줌)
-    places: [
-      { name: '달빛 숲', atSec: 0, bg: 0x2a3462, wall: 0xb9a6e8, decor: ['decorRock', 'decorStump', 'decorGrass'], light: 0xb0b8d8 },
-      { name: '연꽃 호수', atSec: 60, bg: 0x1e3c68, wall: 0x8fd0ff, decor: ['decorPuddle', 'decorRock', 'decorGrass'], light: 0xa8bce0 },
-      { name: '부서진 사당', atSec: 120, bg: 0x3a3448, wall: 0xd9ccff, decor: ['decorPillar', 'decorCrack', 'decorRock'], light: 0xc8beb4 },
-      { name: '봉인의 제단', atSec: 180, bg: 0x44284e, wall: 0xffd36a, decor: ['decorPillar', 'decorCrack'], light: 0xd0b4c4 },
-    ],
-  },
+  arena: ARENA_BALANCE,   // 장소·장애물 → balance_arena.js
+  jump: JUMP_BALANCE,     // 점프 → balance_arena.js
+  veil: VEIL_BALANCE,     // 은형부 카드 → balance_arena.js
 
   enemies: {
     // 플레이어를 똑바로 쫓아오는 요괴. 내 레벨이 fromLevel 이상이면 그 요괴가 나온다 (사용자 요청: 레벨이 오를수록 모양이 바뀌고 세진다)

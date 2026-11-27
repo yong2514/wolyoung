@@ -17,7 +17,7 @@ export class EnemyBullets {
     b.vx = dirX * cfg.bulletSpeed;
     b.vy = dirY * cfg.bulletSpeed;
     b.dieAt = this.scene.clock.now + cfg.bulletLifeMs;
-    b.damage = cfg.bulletDamage * (elite ? 1.4 : 1);
+    b.damage = cfg.bulletDamage * (elite ? 1.4 : 1) * this.scene.enemies.dmgMult;
     b.r = cfg.bulletRadius * (elite ? 1.4 : 1);
     b.sprite.setPosition(x, y).setScale(b.r / 7).setVisible(true);
   }

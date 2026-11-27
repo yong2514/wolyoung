@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config/display.js';
 import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
+import { ReviveScene } from './scenes/ReviveScene.js';
+import { DialogScene } from './scenes/DialogScene.js';
 import { sfx } from './systems/audio.js';
 
 // 자동 점검(scripts/check.mjs)이 읽는 값
@@ -32,5 +34,5 @@ window.__wolyoung.game = new Phaser.Game({
   audio: { noAudio: true }, // 소리는 systems/audio.js가 직접 만든다
   input: { activePointers: 2 },
   banner: false,
-  scene: [BootScene, GameScene],
+  scene: [BootScene, GameScene, ReviveScene, DialogScene],
 });

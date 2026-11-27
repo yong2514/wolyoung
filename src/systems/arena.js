@@ -2,9 +2,10 @@ import { BALANCE } from '../config/balance.js';
 import { sfx } from './audio.js';
 
 // 활동 공간 (사용자 요청): 결계 벽으로 둘러싼 장소 하나. 가운데가 (0,0).
-// 주인공·요괴·카드는 벽 안에만 있고, 카메라도 벽에서 멈춘다.
-// 시간이 지나면(places[].atSec) 다음 장소로 옮겨 간다: 화면이 어두워졌다 밝아지고, 남은 요괴는 사라지고,
-// 바닥 구슬은 영기로 받고, 카드·보물상자·보스는 새 장소 안으로 옮겨진다.
+//  · 주인공·요괴·카드는 벽 안에만 있고, 카메라도 벽에서 멈춘다.
+//  · 장식은 장애물: 주인공·요괴가 지나갈 수 없다 (주인공은 점프로 넘는다).
+//  · 장소마다 placeSec(1분) 동안 싸우고 → 그 장소의 대형 요괴(bosses.js) → 쓰러뜨리면 다음 장소로(travel).
+//    옮길 때 주인공·요괴 모두 강해진다(power). 남은 요괴는 사라지고 구슬은 영기로, 카드·보물상자는 새 장소 안으로.
 export class Arena {
   constructor(scene) {
     this.scene = scene;
@@ -13,18 +14,23 @@ export class Arena {
     this.x0 = -width / 2; this.x1 = width / 2;
     this.y0 = -height / 2; this.y1 = height / 2;
     this.index = -1;
+    this.placeStart = 0;   // 이 장소에서 싸우기 시작한 게임 시간
+    this.rng = scene.rng.fork('arena'); // 장애물 자리 (같은 시드 = 같은 자리)
     scene.cameras.main.setBounds(this.x0, this.y0, width, height);
     this.wall = scene.add.graphics().setDepth(3);
-    this.decor = [];
-    for (let i = 0; i < this.cfg.decor; i++) this.decor.push(scene.add.image(0, 0, 'decorRock').setDepth(-5));
+    this.obstacles = []; // { img, x, y, r }
+    for (let i = 0; i < this.cfg.decor; i++) this.obstacles.push({ img: scene.add.image(0, 0, 'decorRock').setDepth(4), x: 0, y: 0, r: 0 });
     this.setPlace(0);
   }
 
   get place() { return this.cfg.places[this.index]; }
 
-  get next() { return this.cfg.places[this.index + 1]; }
+  get isLast() { return this.index >= this.cfg.places.length - 1; }
 
-  /** 장소 모습 바꾸기: 바닥 색, 벽, 장식 */
+  /** 이 장소에서 지난 시간 (ms) */
+  placeTime(now) { return now - this.placeStart; }
+
+  /** 장소 모습 바꾸기: 바닥 색, 벽, 장애물 */
   setPlace(i) {
     const sc = this.scene;
     this.index = i;
@@ -38,13 +44,22 @@ export class Arena {
     g.lineStyle(5, pl.wall, 0.85); g.strokeRect(this.x0 + 3, this.y0 + 3, w - 6, h - 6); // 결계 벽
     g.fillStyle(pl.wall, 1);
     for (const [x, y] of [[this.x0, this.y0], [this.x1, this.y0], [this.x0, this.y1], [this.x1, this.y1]]) g.fillCircle(x, y, 14);
-    // 장식은 화면 효과 난수로 (게임 흐름에 영향 없음)
-    const rng = sc.fxRng;
-    const kinds = pl.decor;
-    for (const d of this.decor) {
-      d.setTexture(kinds[Math.floor(rng.next() * kinds.length)])
-        .setPosition(rng.range(this.x0 + 50, this.x1 - 50), rng.range(this.y0 + 50, this.y1 - 50))
-        .setTint(pl.light).setAlpha(1).setScale(rng.range(0.9, 1.5)).setFlipX(rng.next() < 0.5);
+    // 장애물: 시작 자리 둘레는 비우고, 서로 겹치지 않게
+    const rng = this.rng;
+    const placed = [];
+    for (const o of this.obstacles) {
+      const kind = pl.decor[Math.floor(rng.next() * pl.decor.length)];
+      const scale = rng.range(0.9, 1.4);
+      o.r = this.cfg.obstacleRadius[kind] * scale;
+      for (let t = 0; t < 12; t++) {
+        o.x = rng.range(this.x0 + 60, this.x1 - 60);
+        o.y = rng.range(this.y0 + 60, this.y1 - 60);
+        const clear = Math.hypot(o.x, o.y) > this.cfg.startClear
+          && placed.every((q) => Math.hypot(q.x - o.x, q.y - o.y) > q.r + o.r + 40);
+        if (clear) break;
+      }
+      placed.push(o);
+      o.img.setTexture(kind).setPosition(o.x, o.y).setTint(pl.light).setScale(scale).setFlipX(rng.next() < 0.5);
     }
   }
 
@@ -53,6 +68,36 @@ export class Arena {
     if (o.x < this.x0 + r) o.x = this.x0 + r; else if (o.x > this.x1 - r) o.x = this.x1 - r;
     if (o.y < this.y0 + r) o.y = this.y0 + r; else if (o.y > this.y1 - r) o.y = this.y1 - r;
     return o;
+  }
+
+  /** 장애물 밖으로 밀어내기 (벽처럼 미끄러지듯). 부딪혔으면 true */
+  block(o, r) {
+    let hit = false;
+    for (let i = 0; i < this.obstacles.length; i++) {
+      const b = this.obstacles[i];
+      const dx = o.x - b.x;
+      const dy = o.y - b.y;
+      const min = r + b.r;
+      const d2 = dx * dx + dy * dy;
+      if (d2 >= min * min) continue;
+      const d = Math.sqrt(d2) || 0.01;
+      o.x = b.x + (dx / d) * min;
+      o.y = b.y + (dy / d) * min;
+      hit = true;
+    }
+    return hit;
+  }
+
+  /** (x,y)에서 dist 안에 장애물이 있나 (점프 버튼 반짝임) */
+  obstacleNear(x, y, dist) {
+    return this.obstacles.some((b) => Math.hypot(b.x - x, b.y - y) < b.r + dist);
+  }
+
+  /** 벽 안 + 장애물 밖 자리 (카드·보물상자 놓을 때) */
+  freePoint(pt, margin = 40) {
+    this.clamp(pt, margin);
+    this.block(pt, 16);
+    return this.clamp(pt, margin);
   }
 
   /**
@@ -67,62 +112,62 @@ export class Arena {
     return { x, y, right: x + VW, bottom: y + VH };
   }
 
-  /** 요괴가 나올 자리: 벽 안쪽 띠 위, 되도록 화면 밖 */
+  /** 요괴가 나올 자리: 화면 바로 바깥 둘레(벽 안), 장애물 밖. 벽 때문에 화면 안이 되면 다른 방향으로 다시 */
   spawnPoint(rng) {
     const ins = this.cfg.spawnInset;
     const v = this.viewRect();
+    const p = this.scene.player;
+    const { width: VW, height: VH } = this.scene.scale.gameSize;
+    const ring = Math.hypot(VW / 2, VH / 2) + 60;
     let pt = null;
-    for (let i = 0; i < 6; i++) {
-      const side = Math.floor(rng.next() * 4);
-      const t = rng.next();
-      pt = side === 0 ? { x: this.x0 + ins, y: this.y0 + t * (this.y1 - this.y0) }
-        : side === 1 ? { x: this.x1 - ins, y: this.y0 + t * (this.y1 - this.y0) }
-          : side === 2 ? { x: this.x0 + t * (this.x1 - this.x0), y: this.y0 + ins }
-            : { x: this.x0 + t * (this.x1 - this.x0), y: this.y1 - ins };
-      const out = pt.x < v.x - 40 || pt.x > v.right + 40 || pt.y < v.y - 40 || pt.y > v.bottom + 40;
-      if (out) return pt;
+    for (let i = 0; i < 8; i++) {
+      const a = rng.next() * Math.PI * 2;
+      pt = this.clamp({ x: p.x + Math.cos(a) * ring, y: p.y + Math.sin(a) * ring }, ins);
+      const out = pt.x < v.x - 30 || pt.x > v.right + 30 || pt.y < v.y - 30 || pt.y > v.bottom + 30;
+      if (out) break;
     }
+    this.block(pt, 18);
     return pt;
   }
 
-  /** 매 걸음: 다음 장소로 갈 때가 됐으면 true (옮기기 시작) */
-  update(now) {
-    const n = this.next;
-    if (!n || now < n.atSec * 1000) return false;
-    this.travel(this.index + 1);
-    return true;
-  }
-
   /** 다음 장소로 옮기기 (그동안 게임 시계는 멈춤) */
-  travel(i) {
+  travel() {
     const sc = this.scene;
     const cam = sc.cameras.main;
+    const i = this.index + 1;
     sc.state = 'travel';
     sc.joystick.reset();
     sfx.play('travel');
     cam.fadeOut(this.cfg.fadeMs, 12, 16, 40);
     cam.once('camerafadeoutcomplete', () => {
       this.moveEverything(i);
+      this.powerUp(i);
       cam.fadeIn(this.cfg.fadeMs, 12, 16, 40);
-      // 장소 이름 + 이때 시작하는 웨이브 (웨이브 알림은 이 알림에 합친다: waves.startWave)
-      const wi = Math.floor(this.place.atSec / BALANCE.waves.waveSec);
-      const w = BALANCE.waves.list[wi];
-      sc.hud.banner(this.place.name, `${i + 1}번째 장소${w ? ` · 웨이브 ${wi + 1} ${w.label}` : ''}`);
+      sc.hud.banner(this.place.name, `${i + 1}번째 장소 · 주인공도 요괴도 강해졌다`);
       sc.time.delayedCall(this.cfg.fadeMs, () => { if (sc.state === 'travel') sc.state = 'play'; });
     });
+  }
+
+  /** 장소마다 강해짐: 주인공 공격력·최대 체력, 요괴 체력·공격력 */
+  powerUp(i) {
+    const sc = this.scene;
+    const P = this.cfg.power;
+    sc.book.damageMult *= (1 + P.playerDamage * i) / (1 + P.playerDamage * (i - 1));
+    sc.player.bonusHp = P.playerHp * i;
+    sc.book.applySupports();
+    sc.player.heal(P.playerHp);
+    sc.enemies.hpMult = sc.difficulty * (1 + P.enemyHp * i);
+    sc.enemies.dmgMult = 1 + P.enemyDamage * i;
   }
 
   moveEverything(i) {
     const sc = this.scene;
     const rng = sc.rng;
     this.setPlace(i);
-    // 남은 요괴·탄은 사라짐 (보스는 따라옴)
+    this.placeStart = sc.clock.now;
+    // 남은 요괴·탄은 사라짐
     const list = sc.enemies.pool.active;
-    for (let k = list.length - 1; k >= 0; k--) {
-      const e = list[k];
-      if (e.def.boss) { Object.assign(e, this.spawnPoint(rng)); e.ai.st = 'chase'; e.warn.setVisible(false); continue; }
-      sc.enemies.remove(e);
-    }
+    for (let k = list.length - 1; k >= 0; k--) sc.enemies.remove(list[k]);
     sc.enemyBullets.pool.active.slice().forEach((b) => sc.enemyBullets.free(b));
     sc.bosses.clearZones();
     // 바닥 구슬은 모두 영기로
@@ -133,8 +178,8 @@ export class Arena {
     const p = sc.player;
     p.x = 0; p.y = 0;
     p.update(0, { x: 0, y: 0 }, sc.clock.now);
-    for (const c of sc.fieldCards.list) if (c.card) sc.fieldCards.place(c, this.randomPoint(rng, 200, 450));
-    for (const c of sc.chests.pool.active) { Object.assign(c, this.randomPoint(rng, 120, 400)); c.sprite.setPosition(c.x, c.y); }
+    for (const c of sc.fieldCards.list) if (c.card) sc.fieldCards.place(c, this.freePoint(this.randomPoint(rng, 200, 450)));
+    for (const c of sc.chests.pool.active) { Object.assign(c, this.freePoint(this.randomPoint(rng, 120, 400))); c.sprite.setPosition(c.x, c.y); }
     sc.cameras.main.centerOn(0, 0);
   }
 

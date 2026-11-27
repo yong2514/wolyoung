@@ -49,7 +49,8 @@ export function readyFusion(book) {
   return FUSIONS.find((f) => !book.level(f) && SPELLS[f].fusion.every((p) => book.level(p) >= book.maxLevel(p)));
 }
 
-export function rollCards(book, rng, n = 3) {
+/** opts.minRare: 3장 중 1장은 반드시 희귀 이상 (첫 판의 첫 카드) */
+export function rollCards(book, rng, n = 3, opts = {}) {
   const cards = [];
   const fusion = readyFusion(book);
   if (fusion) {
@@ -87,6 +88,18 @@ export function rollCards(book, rng, n = 3) {
     }
   }
 
+  // 은형부 (사용자 요청): 가끔 한 장이 은형부로 (잠깐 투명 → 요괴와 부딪쳐도 괜찮음). 난수는 늘 한 번 쓴다 (같은 시드 = 같은 카드)
+  const V = BALANCE.veil;
+  if (rng.next() < V.chance && cards.length >= 2 && !opts.minRare) {
+    cards[cards.length - 1] = {
+      key: 'veil', name: '은형부', kind: 'item', isNew: false, rarity: 'rare',
+      text: `${V.durationMs / 1000}초 동안 몸이 투명해져 요괴와 부딪쳐도 다치지 않는다`,
+    };
+  }
+  if (opts.minRare && !cards.some((c) => c.rarity !== 'common')) {
+    const i = cards.findIndex((c) => c.kind !== 'item' && c.kind !== 'fusion' && book.maxLevel(c.key) - book.level(c.key) >= 2);
+    if (i >= 0) cards[i] = spellCard(book, cards[i].key, BALANCE.cards.gain.rare);
+  }
   if (!cards.length) {
     cards.push({ key: 'elixir', name: '영약', kind: 'item', isNew: false, rarity: 'common', text: `체력 ${BALANCE.elixirHeal} 회복` });
   }

@@ -98,6 +98,19 @@ export class Effects {
     }
   }
 
+  /** 게임 화면 흑백 (쓰러짐·첫 판 체력 1). WebGL에서만 (안 되면 그냥 넘어감) */
+  setGray(on) {
+    const cam = this.scene.cameras.main;
+    if (!cam.postFX) return;
+    if (on && !this.gray) {
+      this.gray = cam.postFX.addColorMatrix();
+      this.gray.grayscale(1);
+    } else if (!on && this.gray) {
+      cam.postFX.remove(this.gray);
+      this.gray = null;
+    }
+  }
+
   shake(kind) {
     if (!settings.shake) return;
     const c = kind === 'hurt' ? BALANCE.feel.hurtShake : BALANCE.feel.killShake;

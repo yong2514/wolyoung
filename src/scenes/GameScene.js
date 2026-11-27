@@ -20,31 +20,37 @@ import { Orbs } from '../systems/orbs.js';
 import { Leveling } from '../systems/leveling.js';
 import { PerfMonitor } from '../systems/perf.js';
 import { AutoPlayer } from '../systems/autoplay.js';
+import { Companion } from '../systems/companion.js';
+import { FirstRun } from '../systems/firstRun.js';
+import { loadSave, writeSave } from '../systems/save.js';
 import { sfx } from '../systems/audio.js';
 import { FieldCards } from '../systems/fieldCards.js';
 import { Joystick } from '../ui/joystick.js';
 import { Hud } from '../ui/hud.js';
 import { Minimap } from '../ui/minimap.js';
 import { BuffList } from '../ui/buffs.js';
+import { JumpButton } from '../ui/jumpButton.js';
 import { DebugPanel } from '../ui/debug.js';
-import { showGameOver, showPause, runCountdown } from '../ui/overlays.js';
+import { showPause, runCountdown } from '../ui/overlays.js';
+import { onDeath, clearRun, loseRun, finishAuto } from './runEnd.js';
 
 const GRID_MARGIN = 200; // 화면 둘레로 이만큼 더 격자에 넣는다
 
-// 한 판. state: play(진행) · target(멸요인 구역) · travel(다음 장소로) · paused(일시정지) · countdown(3초) · over(끝)
-// 레벨업 카드는 멈추지 않고 바닥에 떨어진다 (systems/fieldCards.js)
+// 한 판. state: play(진행) · target(멸요인 구역) · travel(다음 장소로) · cinematic(봉인의 일격) · dying(쓰러짐·부활 장면)
+//   · paused(일시정지) · countdown(3초) · over(끝). 레벨업 카드는 멈추지 않고 바닥에 떨어진다 (systems/fieldCards.js)
 export class GameScene extends Phaser.Scene {
   constructor() { super('Game'); }
 
   create() {
-    this.seed = PARAMS.seed ?? newSeed();
+    this.setupRun();
     this.rng = new Rng(this.seed);
     this.fxRng = this.rng.fork('fx');
     this.cardRng = this.rng.fork('cards'); // 카드 순서 전용 → 같은 시드면 같은 카드
     this.clock = new GameClock();
     this.god = PARAMS.god;
     this.state = 'play';
-    this.stats = { kills: 0, elites: 0, chests: 0, seonok: 0, maxEnemies: 0, firstCardMs: null };
+    this.stats = { kills: 0, elites: 0, chests: 0, seonok: 0, revives: 0, maxEnemies: 0, firstCardMs: null, firstCardRare: null };
+    this.run = { revivesLeft: BALANCE.revive.freePerRun }; // 인연 부활 남은 횟수
 
     this.bg = this.add.tileSprite(0, 0, W, H, 'bgtile').setOrigin(0).setScrollFactor(0).setDepth(-10);
     this.arena = new Arena(this); // 결계 벽으로 둘러싼 장소 (사용자 요청)
@@ -56,20 +62,26 @@ export class GameScene extends Phaser.Scene {
     this.effects = new Effects(this);
     this.player = new Player(this);
     this.enemies = new EnemySystem(this);
+    this.enemies.hpMult = this.difficulty; // 첫 판 60% · 2판 75% · 3판 90%
     this.enemyBullets = new EnemyBullets(this);
     this.orbs = new Orbs(this);
     this.chests = new Chests(this);
-    this.leveling = new Leveling();
+    this.leveling = new Leveling(this.scripted ? BALANCE.firstRun.firstLevelXp : undefined);
     this.realm = new Realm(this);
     this.waves = new Waves(this);
+    this.waves.countMult = this.difficulty;
     this.book = new SpellBook(this);
     this.book.learn(BALANCE.spells.startWith);
+    this.companion = new Companion(this, 'seoha'); // 동료 (6a에서 고르기)
     this.joystick = new Joystick(this);
     this.fieldCards = new FieldCards(this);
     this.hud = new Hud(this);
     this.bosses = new Bosses(this);
+    this.firstRun = new FirstRun(this);
     this.minimap = new Minimap(this);
     this.buffList = new BuffList(this);
+    this.jumpBtn = new JumpButton(this);
+    this.hud.banner(this.arena.place.name, `1번째 장소 · ${BALANCE.arena.placeSec}초 버티면 대형 요괴`);
     this.perf = new PerfMonitor(this);
     this.cameras.main.startFollow(this.player.sprite, false, 1, 1);
     this.auto = PARAMS.auto ? new AutoPlayer(this.rng.fork('auto')) : null;
@@ -91,8 +103,20 @@ export class GameScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       document.removeEventListener('visibilitychange', onVis);
       this.debug?.destroy();
+      this.scene.stop('Revive');
     });
     window.__wolyoung.ready = true;
+  }
+
+  /** 몇 번째 판인지 → 첫 판 각본·난이도·시드 */
+  setupRun() {
+    this.save = loadSave();
+    this.isDebugFirst = PARAMS.first; // 디버그로 첫 판을 시험 (저장 안 바꿈)
+    this.scripted = PARAMS.first || (!PARAMS.debug && !this.save.firstRunDone);
+    const runIndex = this.scripted ? 0 : PARAMS.debug ? 3 : this.save.runs;
+    this.difficulty = BALANCE.runDifficulty[runIndex] ?? 1;
+    if (!PARAMS.debug) { this.save.runs++; writeSave(this.save); }
+    this.seed = PARAMS.seed ?? (this.scripted ? BALANCE.firstRun.seed : newSeed());
   }
 
   canMove() { return this.state === 'play' || this.state === 'countdown'; }
@@ -110,6 +134,8 @@ export class GameScene extends Phaser.Scene {
     this.hud.update();
     this.minimap.update();
     this.buffList.update();
+    this.jumpBtn.update();
+    this.firstRun.tick(this.clock.now);
     this.perf.update(delta);
     this.debug?.update();
   }
@@ -117,9 +143,9 @@ export class GameScene extends Phaser.Scene {
   /** 게임 한 걸음 (dt: 게임 시간 ms, 늘 STEP) */
   step(dt) {
     const now = this.clock.now;
-    if (this.arena.update(now)) return; // 다음 장소로 옮기는 중
     const move = this.auto ? this.auto.vector(dt, this) : this.joystick.vector;
     this.player.update(dt, move, now);
+    if (!this.player.jumping(now)) this.arena.block(this.player, this.player.radius); // 장애물은 점프로만 넘는다
     this.arena.clamp(this.player, this.player.radius); // 결계 벽 안에만
     this.waves.update(dt, now);
     this.bosses.update(dt, now);
@@ -130,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies.collide(now);
     this.enemyBullets.update(dt, now);
     this.book.update(dt, now);
+    this.companion.update(dt, now);
     this.orbs.update(dt);
     this.chests.update(dt, now);
     this.fieldCards.update(dt, now);
@@ -140,37 +167,19 @@ export class GameScene extends Phaser.Scene {
       this.fieldCards.dropGroup(now);
     }
     this.effects.update(dt);
+    this.firstRun.update();
     this.stats.maxEnemies = Math.max(this.stats.maxEnemies, this.enemies.count);
 
-    if (this.state !== 'play') return; // 요황 처치로 끝남
-    if (this.player.hp <= 0) this.gameOver();
-    else if (this.auto && now >= PARAMS.autoMax * 1000) this.finishAuto('시간 끝');
+    if (this.state !== 'play') return; // 요황 처치·봉인의 일격
+    if (this.player.hp <= 0) this.onDeath();
+    else if (this.auto && now >= PARAMS.autoMax * 1000) finishAuto(this, '시간 끝');
   }
 
-  /** 요황 처치: 봉인 성공 */
-  clear() {
-    this.state = 'over';
-    this.joystick.reset();
-    const p = this.player;
-    this.effects.flash('ring', p.x, p.y, { life: 1200, scale: 0.5, scaleTo: 12, tint: 0xffd36a, depth: 45 });
-    this.effects.burst(p.x, p.y, 0xffd36a, 40);
-    this.cameras.main.flash(500, 255, 240, 200);
-    sfx.play('breakthrough');
-    if (this.auto) { this.finishAuto('클리어'); return; }
-    showGameOver(this, { title: '봉인 성공!', color: '#ffe7a8', sub: '요황을 다시 봉인했다', timeMs: this.clock.now, kills: this.stats.kills },
-      () => this.scene.restart());
-  }
+  onDeath() { onDeath(this); }
 
-  /** 요황이 120초 안에 쓰러지지 않음: 패배 */
-  lose(reason) {
-    this.state = 'over';
-    this.joystick.reset();
-    sfx.play('gameover');
-    this.cameras.main.shake(600, 0.02);
-    if (this.auto) { this.finishAuto('봉인석 붕괴'); return; }
-    showGameOver(this, { title: '봉인석이 부서졌다…', sub: reason, timeMs: this.clock.now, kills: this.stats.kills },
-      () => this.scene.restart());
-  }
+  clear() { clearRun(this); }
+
+  lose() { loseRun(this); }
 
   pause(byHide) {
     if (this.state !== 'play') return;
@@ -191,41 +200,5 @@ export class GameScene extends Phaser.Scene {
       this.state = 'play';
       this.clock.paused = false;
     });
-  }
-
-  gameOver() {
-    this.state = 'over';
-    this.joystick.reset();
-    sfx.play('gameover');
-    this.effects.vibrate(200);
-    if (this.auto) { this.finishAuto('사망'); return; }
-    showGameOver(this, { timeMs: this.clock.now, kills: this.stats.kills }, () => this.scene.restart());
-  }
-
-  /** 자동 점검 결과 한 줄 */
-  finishAuto(reason) {
-    this.state = 'over';
-    const w = window.__wolyoung;
-    const sec = (ms) => +(ms / 1000).toFixed(1);
-    const r = {
-      errors: w.errors,
-      wave: this.waves.index + 1,
-      avgFps: Math.round(this.perf.avg),
-      maxEnemies: this.stats.maxEnemies,
-      timeSec: Math.round(this.clock.now / 1000),
-      kills: this.stats.kills,
-      elites: this.stats.elites,
-      chests: this.stats.chests,
-      level: this.leveling.level,
-      firstCardSec: this.stats.firstCardMs === null ? null : sec(this.stats.firstCardMs),
-      realmSecs: this.realm.times.slice(1).map(sec), // 축기·금단·원영·화신 돌파 시각(초)
-      spells: this.book.order.map((k) => `${k}${this.book.level(k)}`).join(','),
-      reason,
-    };
-    console.log(`[자동점검] 오류 ${r.errors}개, 도달 웨이브 ${r.wave}, 평균 프레임 ${r.avgFps}, 최대 요괴 ${r.maxEnemies}마리`
-      + ` (${reason}, ${r.timeSec}초, 처치 ${r.kills}, 정예 ${r.elites}, 상자 ${r.chests}, Lv ${r.level}, 첫 카드 ${r.firstCardSec}초,`
-      + ` 돌파 ${r.realmSecs.join('/')}초, ${r.spells})`);
-    w.result = r;
-    showGameOver(this, { timeMs: this.clock.now, kills: this.stats.kills }, () => this.scene.restart());
   }
 }

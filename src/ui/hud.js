@@ -2,6 +2,7 @@ import { GAME_WIDTH as W, GAME_HEIGHT as H, FONT, BUTTON_ZONE_TOP } from '../con
 import { BALANCE } from '../config/balance.js';
 import { settings } from '../systems/settings.js';
 import { formatTime } from './overlays.js';
+import { runScore } from '../systems/score.js';
 
 const BAR_W = 116;  // 체력 막대 길이
 const WAVE_W = 120; // 웨이브 진행 막대 길이
@@ -17,10 +18,10 @@ export class Hud {
     this.hpText = fix(scene.add.text(16, 34, '', { fontFamily: FONT, fontSize: '13px', color: '#dfe4f2' }));
     this.realmText = fix(scene.add.text(16, 52, '', { fontFamily: FONT, fontSize: '15px', fontStyle: 'bold', color: '#b9a6e8' }));
 
-    // 가운데: 남은 시간 + 웨이브 진행 막대 (7칸)
+    // 가운데: 장소의 남은 시간 + 장소 진행 막대 (장소마다 한 칸)
     this.timeText = fix(scene.add.text(W / 2, 12, '', { fontFamily: FONT, fontSize: '24px', fontStyle: 'bold', color: '#dfe4f2' })
       .setOrigin(0.5, 0));
-    const n = BALANCE.waves.list.length;
+    const n = BALANCE.arena.places.length;
     const x0 = W / 2 - WAVE_W / 2;
     this.waveCells = [];
     for (let i = 0; i < n; i++) {
@@ -65,6 +66,15 @@ export class Hud {
     this.pauseBtn.on('pointerout', () => { pressed = false; });
     this.pauseBtn.on('pointerup', () => { if (pressed) { pressed = false; scene.pause(false); } });
 
+    // 점수와 최고 점수 (사용자 요청) — 작은 지도 아래 오른쪽
+    const sy = BALANCE.minimap.top + BALANCE.minimap.height + 8;
+    this.scoreText = fix(scene.add.text(W - 12, sy, '', { fontFamily: FONT, fontSize: '13px', fontStyle: 'bold', color: '#ffffff' })
+      .setOrigin(1, 0));
+    this.bestText = fix(scene.add.text(W - 12, sy + 17, '', { fontFamily: FONT, fontSize: '12px', color: '#ffd36a' }).setOrigin(1, 0));
+
+    // 체력 20% 이하: 화면 가장자리가 붉게 깜빡임
+    this.lowHp = scene.add.image(0, 0, 'vignetteRed').setOrigin(0).setScrollFactor(0).setDepth(141).setAlpha(0);
+
     this.last = {};
   }
 
@@ -93,37 +103,51 @@ export class Hud {
     const now = sc.clock.now;
     const k = Math.max(0, p.hp / p.maxHp);
     this.hpBar.width = BAR_W * k;
-    this.hpBar.fillColor = k <= 0.2 ? 0xff7a5a : 0x8fd0ff;
+    const low = k <= BALANCE.revive.lowHpRatio && p.hp > 0;
+    this.hpBar.fillColor = low ? 0xff7a5a : 0x8fd0ff;
+    this.lowHp.setAlpha(low ? 0.45 + 0.45 * Math.sin(sc.time.now / 160) : 0);
     this.set('hp', this.hpText, `${Math.ceil(p.hp)} / ${p.maxHp}`);
     const realm = BALANCE.realms.list[sc.realm.index];
     this.set('realm', this.realmText, `경지 · ${realm.name}`);
     this.realmText.setColor(`#${realm.color.toString(16).padStart(6, '0')}`);
 
-    // 남은 시간 (요황까지). 요황이 나오면 체력 막대 + 봉인석 붕괴까지 남은 시간
-    const king = sc.bosses.king;
-    const bossOn = !!king && (king.alive || sc.bosses.done);
+    // 장소의 남은 시간 (1분). 대형 요괴가 나오면 그 자리가 체력 막대로 (요황이면 봉인석 붕괴까지 남은 시간도)
+    const ar = sc.arena;
+    const boss = sc.bosses.current;
+    const bossOn = !!boss && (boss.alive || sc.bosses.done);
     this.timeText.setVisible(!bossOn);
     this.bossBg.setVisible(bossOn);
     this.bossFill.setVisible(bossOn);
     this.bossName.setVisible(bossOn);
-    const wv = sc.waves.index;
-    for (let i = 0; i < this.waveCells.length; i++) {
+    const placeK = bossOn ? 1 : Math.min(1, ar.placeTime(now) / (ar.cfg.placeSec * 1000));
+    for (let i = 0; i < this.waveCells.length; i++) { // 칸 = 장소
       const cw = WAVE_W / this.waveCells.length - 2;
-      this.waveCells[i].width = i < wv ? cw : i === wv ? cw * sc.waves.progress(now) : 0;
+      this.waveCells[i].width = i < ar.index ? cw : i === ar.index ? cw * placeK : 0;
     }
     if (bossOn) {
-      this.bossFill.width = BOSS_W * Math.max(0, king.hp / king.maxHp);
+      const isKing = boss === sc.bosses.king;
+      this.bossFill.width = BOSS_W * Math.max(0, boss.hp / boss.maxHp);
       this.bossFill.fillColor = sc.bosses.enraged ? 0xff5a3c : 0xd94a3a;
-      this.set('bossName', this.bossName, sc.bosses.enraged ? '요황 · 광폭' : '요황');
-      const t = Math.max(0, sc.bosses.kingTimeLeft(now));
-      this.set('wave', this.waveText, `봉인석 붕괴까지 ${formatTime(t + 999)}`);
-      this.waveText.setColor(t < 30000 ? '#ff9a6a' : '#b9a6e8');
+      this.set('bossName', this.bossName, `${boss.def.name}${isKing && sc.bosses.enraged ? ' · 광폭' : ''}`);
+      if (isKing) {
+        const t = Math.max(0, sc.bosses.kingTimeLeft(now));
+        this.set('wave', this.waveText, `봉인석 붕괴까지 ${formatTime(t + 999)}`);
+        this.waveText.setColor(t < 30000 ? '#ff9a6a' : '#b9a6e8');
+      } else {
+        this.set('wave', this.waveText, `${ar.place.name}의 대형 요괴`);
+        this.waveText.setColor('#b9a6e8');
+      }
     } else {
-      this.set('time', this.timeText, formatTime(BALANCE.waves.bossAtSec * 1000 - now + 999));
-      this.set('wave', this.waveText, `웨이브 ${wv + 1}`);
+      this.set('time', this.timeText, formatTime(Math.max(0, ar.cfg.placeSec * 1000 - ar.placeTime(now)) + 999));
+      this.set('wave', this.waveText, `${ar.index + 1}번째 장소 · ${ar.place.name}`);
+      this.waveText.setColor('#b9a6e8');
     }
 
     this.set('kills', this.killText, `처치 ${sc.stats.kills}`);
+    const score = runScore(sc);
+    const best = sc.save.records[0]?.score ?? 0;
+    this.set('score', this.scoreText, `점수 ${score.toLocaleString('ko-KR')}`);
+    this.set('best', this.bestText, score > best ? '최고 기록 경신 중!' : `최고 ${best.toLocaleString('ko-KR')}`);
     this.set('level', this.levelText, `Lv ${sc.leveling.level}`);
     this.xpBar.width = W * sc.leveling.ratio;
     const near = sc.realm.near();

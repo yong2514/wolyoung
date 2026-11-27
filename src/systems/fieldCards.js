@@ -39,7 +39,9 @@ export class FieldCards {
   dropGroup(now) {
     const sc = this.scene;
     const rng = sc.cardRng; // 카드 전용 난수 (같은 시드 = 같은 카드·같은 자리)
-    const cards = rollCards(sc.book, rng);
+    const firstDrop = this.group === 0;
+    const cards = rollCards(sc.book, rng, 3, { minRare: sc.scripted && firstDrop }); // 첫 판 첫 카드: 1장은 희귀 이상
+    if (firstDrop) sc.stats.firstCardRare = cards.some((c) => c.rarity !== 'common');
     const p = sc.player;
     const g = ++this.group;
     const base = rng.next() * Math.PI * 2;
@@ -55,7 +57,8 @@ export class FieldCards {
       const col = cardColor(c);
       o.sprite.setTint(col).setScale(c.rarity === 'legend' || c.kind === 'fusion' ? 1.2 : 1).setVisible(true);
       o.glow.setTint(col).setVisible(true);
-      const star = c.rarity === 'legend' ? '★' : c.rarity === 'rare' ? '☆' : '';
+      const star = (c.rarity === 'legend' ? '★' : c.rarity === 'rare' ? '☆' : '')
+        + (sc.companion?.synergy === c.key ? '인연 ' : ''); // 동료 궁합 법술 (+20%)
       const name = c.kind === 'fusion' ? `합일 ${c.name}` : c.isNew || c.kind === 'item' ? c.name : `${c.name} ${c.to}단계`;
       o.label.setText(star + name).setColor(`#${col.toString(16).padStart(6, '0')}`).setVisible(true);
     });
@@ -116,6 +119,11 @@ export class FieldCards {
     const sc = this.scene;
     const book = sc.book;
     const sec = `(${BALANCE.fieldCards.effectSec}초)`;
+    if (c.key === 'veil') { // 은형부: 잠깐 투명
+      sc.player.veilUntil = sc.clock.now + BALANCE.veil.durationMs;
+      sfx.play('veil');
+      return `은형부! ${BALANCE.veil.durationMs / 1000}초 투명`;
+    }
     if (c.kind === 'fusion') {
       if (readyFusion(book) === c.key) { this.fuse(c.key); return `합일 · ${c.name}! ${sec}`; }
     } else if (c.kind !== 'item') {

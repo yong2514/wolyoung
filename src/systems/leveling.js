@@ -8,10 +8,11 @@ export function xpNeed(level) {
 
 // 영기·레벨. 레벨이 오르면 pending(골라야 할 카드 수)이 쌓인다.
 export class Leveling {
-  constructor() {
+  /** firstNeed: 첫 레벨업에 필요한 영기를 따로 (첫 판 각본) */
+  constructor(firstNeed) {
     this.level = 1;
     this.xp = 0;
-    this.need = xpNeed(1);
+    this.need = firstNeed ?? xpNeed(1);
     this.pending = 0;
     this.gainMult = 1; // 영기 획득량 배율 (2b 보조 법술)
   }

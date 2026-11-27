@@ -1,7 +1,6 @@
 // 보스 밸런스 (balance.js에서 불러 쓴다). 시간 ms, 거리 픽셀
 
 export const BOSS_BALANCE = {
-  midBossAtSec: 120,     // 중간 보스 요장이 나오는 때 (웨이브 4 끝)
   annihilateRatio: 0.12, // 멸요인을 맞으면 보스는 즉사 대신 최대 체력의 이만큼 피해
   slowFloor: 0.7,        // 보스는 이보다 더 느려지지 않는다 (빙결)
   catchUpRange: 320,     // 플레이어와 이보다 멀면
@@ -16,7 +15,8 @@ export const BOSS_BALANCE = {
   },
 
   yohwang: {             // 요황: 최종 보스. 패턴 3개(돌진·탄막·내려찍기), 50%에서 2단계, 75초 광폭화, 120초 넘으면 패배
-    name: '요황', hp: 5000, speed: 52, damage: 25, radius: 48, orb: 0, // 체력: 보통 30~60초 안에 쓰러지게
+    // 체력 3000: 마지막 장소에서 장소 강화(+40%×3)가 곱해져 약 6600. 보통 30~60초 안에 쓰러지게
+    name: '요황', hp: 3000, speed: 52, damage: 25, radius: 48, orb: 0,
     patternGapMs: [2600, 1700],   // 패턴 사이 쉬는 시간 [1단계, 2단계]
     charge: { windupMs: 900, dashSpeed: 520, dashMs: 700 },
     volley: {                     // 탄막: 빛을 모았다가 둥글게 탄을 퍼뜨림

@@ -1,5 +1,6 @@
 import { SPELLS, FUSIONS } from '../data/spells.js';
 import { BALANCE } from '../config/balance.js';
+import { writeSave } from '../systems/save.js';
 
 // 디버그 패널 (?debug=1). 화면 위 HTML 버튼. 글자는 textContent로만 넣는다.
 // 웨이브 건너뛰기·즉시 레벨업·선옥·인연·첫 판 다시 보기는 해당 단계에서 붙인다.
@@ -27,7 +28,12 @@ export class DebugPanel {
     const godLabel = () => (scene.god ? '무적: 켜짐' : '무적: 꺼짐');
     btn(godLabel(), (b) => { scene.god = !scene.god; b.textContent = godLabel(); });
     btn('잡귀 150', () => scene.enemies.fill(150 - scene.enemies.count, scene.clock.now));
-    btn('다음 웨이브', () => { scene.clock.now = (scene.waves.index + 1) * BALANCE.waves.waveSec * 1000; });
+    // 대형 요괴로 건너뛰기: 대형 요괴가 없으면 이 장소의 1분을 끝내고, 있으면 쓰러뜨린다 (→ 다음 장소)
+    btn('대형 요괴로', () => {
+      const b = scene.bosses.current;
+      if (b?.alive) scene.enemies.hit(b, b.hp + 1, scene.clock.now);
+      else scene.arena.placeStart = scene.clock.now - BALANCE.arena.placeSec * 1000;
+    });
     btn('레벨업', () => { scene.leveling.pending++; });
     // 합일 준비: 누를 때마다 다음 합일의 재료 두 법술을 최대로 올리고 레벨업 → 합일 카드가 나온다 (칸 제한 무시)
     let fi = 0;
@@ -44,6 +50,13 @@ export class DebugPanel {
     });
     btn('체력 회복', () => { scene.player.hp = scene.player.maxHp; });
     btn('새 판', () => scene.scene.restart());
+    // 첫 판 다시 보기: 이 기기의 '첫 판을 했다' 기록을 지우고 디버그 없이 다시 연다 → 첫 판 각본
+    btn('첫 판 다시 보기', () => {
+      scene.save.firstRunDone = false;
+      scene.save.runs = 0;
+      writeSave(scene.save);
+      location.href = location.pathname;
+    });
     const fold = btn('접기', () => {
       const hide = row.dataset.folded !== '1';
       row.dataset.folded = hide ? '1' : '0';
