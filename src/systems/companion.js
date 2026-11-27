@@ -8,6 +8,7 @@ const TINT = 0xc8d4ff; // 동료 법술 색 (연하게)
 
 // 동료 (기획서 4번): 주인공 뒤를 따라다니고, 멀어지면 곁으로 순간이동, 피해를 받지 않는다.
 // 서하 · 천검결: 주기적으로 둘레 요괴에게 검비. 부활 때는 크게 한 번(burst).
+// 사용자 요청: 늘 있지 않고 「서하」 버튼으로 부를 때만 summon.durationMs 동안 나온다 (다시 부르기까지 cooldownMs)
 export class Companion {
   constructor(scene, key) {
     this.scene = scene;
@@ -28,12 +29,60 @@ export class Companion {
     this.near = [];
     this.swords = new Pool(() => scene.add.image(0, 0, 'sword').setVisible(false).setDepth(27), 40, 10);
     this.walkT = 0;
+    this.active = false;   // 지금 함께 있나
+    this.until = 0;        // 이때 떠남
+    this.readyAt = 0;      // 이때부터 다시 부를 수 있음
+    this.setVisible(false);
   }
 
-  /** 궁합 법술 (카드 '인연' 표시, 효과 +20%) */
-  get synergy() { return this.def.synergy; }
+  /** 궁합 법술 (카드 '인연' 표시, 효과 +20%) — 함께 있을 때만 */
+  get synergy() { return this.active ? this.def.synergy : null; }
+
+  setVisible(v) {
+    this.sprite.setVisible(v);
+    this.shadow.setVisible(v);
+  }
+
+  /** 곁에 나타나기 (부르기·부활·말할 때) */
+  appear() {
+    const p = this.scene.player;
+    this.x = p.x - (p.dirX || 1) * this.cfg.followDist;
+    this.y = p.y;
+    this.sprite.setPosition(this.x, this.y);
+    this.shadow.setPosition(this.x, this.y + 20);
+    this.setVisible(true);
+    this.scene.effects.flash('ring', this.x, this.y, { life: 350, scale: 0.1, scaleTo: 0.9, tint: TINT, alpha: 0.8 });
+  }
+
+  /** 「서하」 버튼: 부르기. 불렀으면 true */
+  summon(now) {
+    const S = this.cfg.summon;
+    if (this.active || now < this.readyAt || this.scene.state !== 'play') return false;
+    this.active = true;
+    this.until = now + S.durationMs;
+    this.readyAt = now + S.cooldownMs;
+    this.nextSkill = now + 400;
+    this.appear();
+    this.say('검이 필요하냐.');
+    sfx.play('veil');
+    return true;
+  }
+
+  /** 다시 부르기까지 남은 비율 (0이면 부를 수 있음) */
+  cooldownLeft(now) {
+    if (this.active) return 1;
+    return Math.max(0, (this.readyAt - now) / this.cfg.summon.cooldownMs);
+  }
+
+  leave() {
+    this.active = false;
+    this.scene.effects.flash('ring', this.x, this.y, { life: 400, scale: 0.8, scaleTo: 0.1, tint: TINT, alpha: 0.8 });
+    this.setVisible(false);
+  }
 
   update(dt, now) {
+    if (!this.active) return;
+    if (now >= this.until) { this.leave(); return; }
     const p = this.scene.player;
     const c = this.cfg;
     // 주인공 뒤쪽 자리로
@@ -120,6 +169,10 @@ export class Companion {
 
   /** 말풍선 한 줄 (실제 시간 ms) */
   say(text, ms = 1800) {
+    if (!this.active) { // 곁에 없을 때는 주인공 머리 위에 목소리만
+      const p = this.scene.player;
+      this.bubble.setPosition(p.x, p.y - 44);
+    }
     this.bubble.setText(text).setVisible(true);
     this.scene.time.delayedCall(ms, () => this.bubble.setVisible(false));
   }

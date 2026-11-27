@@ -1,8 +1,8 @@
-import { GAME_WIDTH as W, GAME_HEIGHT as H } from '../config/display.js';
+import { GAME_WIDTH as W } from '../config/display.js';
 import { BALANCE } from '../config/balance.js';
 import { cardColor } from '../systems/fieldCards.js';
 
-// 작은 지도 (오른쪽 위): 지금 장소 전체. 주인공(흰 점)·떨어진 카드·보스·보물상자·화면에 보이는 범위(네모)
+// 작은 지도 (오른쪽 위): 지금 장소 전체에서 주인공(흰 점)과 떨어진 카드(색 점)만 보여 준다 (사용자 요청)
 export class Minimap {
   constructor(scene) {
     this.scene = scene;
@@ -17,37 +17,23 @@ export class Minimap {
     this.g = scene.add.graphics().setScrollFactor(0).setDepth(151);
   }
 
-  /** 월드 좌표 → 지도 위 */
-  mx(wx) { return this.x + (wx - this.scene.arena.x0) * this.k; }
-
-  my(wy) { return this.y + (wy - this.scene.arena.y0) * this.k; }
-
   dot(wx, wy, color, r) {
+    const a = this.scene.arena;
     this.g.fillStyle(color, 1);
-    this.g.fillCircle(this.mx(wx), this.my(wy), r);
+    this.g.fillCircle(this.x + (wx - a.x0) * this.k, this.y + (wy - a.y0) * this.k, r);
   }
 
   update() {
     const sc = this.scene;
-    const g = this.g;
-    g.clear();
+    this.g.clear();
     this.bg.setStrokeStyle(1, sc.arena.place.wall, 0.9); // 장소 벽 색
-    // 화면에 보이는 범위
-    const cam = sc.cameras.main;
-    g.lineStyle(1, 0xdfe4f2, 0.3);
-    g.strokeRect(this.mx(cam.scrollX), this.my(cam.scrollY), W * this.k, H * this.k);
-
     const blink = Math.floor(sc.time.now / 250) % 2;
-    for (const c of sc.chests.pool.active) this.dot(c.x, c.y, 0xffd36a, 2);
-    for (const o of sc.arena.obstacles) this.dot(o.x, o.y, 0x8a8a9a, 1.2); // 장애물 (작은 회색 점)
-    const b = sc.bosses.current;
-    if (b?.alive) this.dot(b.x, b.y, 0xff5a3c, 4);
     for (const o of sc.fieldCards.list) {
       if (!o.card) continue;
       const gold = o.card.rarity === 'legend' || o.card.kind === 'fusion';
       if (gold && blink) continue;
       this.dot(o.x, o.y, cardColor(o.card), 3);
     }
-    this.dot(sc.player.x, sc.player.y, 0xffffff, 3); // 주인공
+    this.dot(sc.player.x, sc.player.y, 0xffffff, 3.5); // 주인공
   }
 }

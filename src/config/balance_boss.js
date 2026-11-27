@@ -9,14 +9,14 @@ export const BOSS_BALANCE = {
   shedOrb: 12,           // 그 구슬의 영기 (저절로 날아옴)
 
   yojang: {              // 요장: 중간 보스. 돌진 + 잡귀 부르기
-    name: '요장', hp: 1500, speed: 58, damage: 20, radius: 34, orb: 25,
+    name: '요장', hp: 2200, speed: 58, damage: 20, radius: 34, orb: 25, // 장소마다 +40%씩 (2200 → 3080 → 3960)
     chargeEveryMs: 4500, windupMs: 900, dashSpeed: 470, dashMs: 600,
     summonEveryMs: 7000, summonCount: 6,
   },
 
   yohwang: {             // 요황: 최종 보스. 패턴 3개(돌진·탄막·내려찍기), 50%에서 2단계, 75초 광폭화, 120초 넘으면 패배
-    // 체력 2500: 마지막 장소에서 장소 강화(+40%×3)가 곱해져 약 5500. 120초 제한 안에 쓰러지게
-    name: '요황', hp: 2500, speed: 52, damage: 25, radius: 48, orb: 0,
+    // 체력 3000: 마지막 장소에서 장소 강화(+40%×3)가 곱해져 약 6600. 120초 제한 안에 쓰러지게
+    name: '요황', hp: 3000, speed: 52, damage: 25, radius: 48, orb: 0,
     patternGapMs: [2600, 1700],   // 패턴 사이 쉬는 시간 [1단계, 2단계]
     charge: { windupMs: 900, dashSpeed: 520, dashMs: 700 },
     volley: {                     // 탄막: 빛을 모았다가 둥글게 탄을 퍼뜨림

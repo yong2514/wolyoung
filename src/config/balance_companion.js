@@ -1,6 +1,11 @@
 // 동료·인연 부활·첫 판 각본 밸런스 (balance.js에서 불러 쓴다). 시간 ms, 거리 픽셀
 
 export const COMPANION_BALANCE = {
+  // 동료는 부를 때만 (사용자 요청: 늘 있으면 너무 쉬움). 「서하」 버튼 → durationMs 동안 함께 싸우고 떠남
+  summon: {
+    durationMs: 15000,   // 함께 있는 시간
+    cooldownMs: 60000,   // 다시 부르기까지 (부른 때부터)
+  },
   followDist: 46,        // 주인공 뒤 이만큼 떨어져 따라감
   teleportDist: 340,     // 이보다 멀어지면 곁으로 순간이동
   synergyBonus: 1.2,     // 궁합 법술 효과 배율 (그 동료와 함께일 때 +20%)

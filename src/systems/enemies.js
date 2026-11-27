@@ -17,6 +17,7 @@ export class EnemySystem {
     this.keepAtLeast = 0; // 디버그: 이 수만큼 계속 채움
     this.hpMult = 1;      // 체력 배율 (첫 판·2판·3판 난이도 × 장소마다 강해짐)
     this.dmgMult = 1;     // 공격력 배율 (장소마다 강해짐)
+    this.orbMult = 1;     // 떨어뜨리는 영기 배율 (장소마다 커짐)
     this.nextId = 1;
     this.near = [];
     this.pool = new Pool(() => ({
@@ -274,7 +275,7 @@ export class EnemySystem {
     sfx.play('kill');
     sc.stats.kills++;
     if (elite) sc.stats.elites++;
-    sc.orbs.drop(x, y, def.orb * (elite ? BALANCE.enemies.elite.orbMult : 1)); // 영기는 구슬을 주워야 오른다
+    sc.orbs.drop(x, y, def.orb * (elite ? BALANCE.enemies.elite.orbMult : 1) * this.orbMult); // 영기는 구슬을 주워야 오른다
     this.remove(e);
     if (elite) sc.chests.drop(x, y);
     if (def.boss) sc.bosses.onKilled(def.key, x, y);

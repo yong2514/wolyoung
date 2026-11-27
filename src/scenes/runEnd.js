@@ -5,6 +5,7 @@ import { writeSave } from '../systems/save.js';
 import { PARAMS } from '../systems/params.js';
 import { runScore, addRecord, shortDate } from '../systems/score.js';
 import { showResult } from '../ui/result.js';
+import { victoryBurst } from '../systems/victory.js';
 
 // 판의 끝 흐름: 쓰러짐 → 인연 부활(또는 끝) · 봉인 성공 · 봉인석 붕괴 · 결과 화면 · 자동 점검 결과
 // sc = GameScene
@@ -22,8 +23,9 @@ export function onDeath(sc) {
     sc.time.delayedCall(900, () => endRun(sc, 'dead'));
     return;
   }
-  // 동료가 달려온다
+  // 동료가 달려온다 (부르지 않았어도 쓰러지면 나타난다)
   const c = sc.companion;
+  if (!c.active) c.appear();
   sc.tweens.add({ targets: c, x: sc.player.x - 30, y: sc.player.y, duration: 500, ease: 'Cubic.easeOut',
     onUpdate: () => { c.sprite.setPosition(c.x, c.y); c.shadow.setPosition(c.x, c.y + 20); } });
   const line = scripted ? STORY.seoha.scriptRevive : reviveLine(c.key, sc.save.bonds[c.key] ?? 1, sc.fxRng);
@@ -43,22 +45,20 @@ function revive(sc, scripted) {
   p.hp = p.maxHp * R.hpRatio;
   p.invulnUntil = now + R.invulnMs;
   sc.companion.burst(now);
+  if (!sc.companion.active) sc.time.delayedCall(900, () => { if (!sc.companion.active) sc.companion.leave(); }); // 살려 주고 떠남
   if (scripted) sc.firstRun.afterScriptRevive(now);
   else { sc.run.revivesLeft--; sc.stats.revives++; }
   sc.cameras.main.flash(300, 230, 220, 255);
   sc.state = 'play';
 }
 
-/** 요황 처치: 봉인 성공 */
-export function clearRun(sc) {
+/** 요황 처치: 큰 폭발 연출 → 잠시 뒤 결과 (봉인 성공) */
+export function clearRun(sc, x = sc.player.x, y = sc.player.y) {
   sc.state = 'over';
   sc.joystick.reset();
-  const p = sc.player;
-  sc.effects.flash('ring', p.x, p.y, { life: 1200, scale: 0.5, scaleTo: 12, tint: 0xffd36a, depth: 45 });
-  sc.effects.burst(p.x, p.y, 0xffd36a, 40);
-  sc.cameras.main.flash(500, 255, 240, 200);
-  sfx.play('breakthrough');
-  endRun(sc, 'clear');
+  victoryBurst(sc, x, y, '봉인 성공!');
+  if (sc.auto) { endRun(sc, 'clear'); return; }
+  sc.time.delayedCall(BALANCE.victory.resultDelayMs, () => endRun(sc, 'clear'));
 }
 
 /** 요황이 120초 안에 쓰러지지 않음 */

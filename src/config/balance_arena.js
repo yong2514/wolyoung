@@ -18,6 +18,7 @@ export const ARENA_BALANCE = {
     playerHp: 20,       // 최대 체력 +20씩 (늘어난 만큼 회복)
     enemyHp: 0.4,       // 요괴 체력 +40%씩 (보스 포함)
     enemyDamage: 0.15,  // 요괴 공격력 +15%씩
+    orbValue: 0.25,     // 요괴가 떨어뜨리는 영기 +25%씩 (강해진 요괴를 잡으면 보상도 크게 → 카드가 계속 나옴)
   },
 
   // bg 바닥 색, wall 벽 색, decor 장애물 종류, light 장애물에 비치는 빛 색, boss 그 장소의 대형 요괴

@@ -1,6 +1,7 @@
 import { BALANCE } from '../config/balance.js';
 import { Pool } from './pool.js';
 import { sfx } from './audio.js';
+import { victoryBurst } from './victory.js';
 
 const WARN = 0xff9a2e;   // 예고 (주황)
 const DANGER = 0xff5a3c; // 공격 (붉은)
@@ -58,6 +59,7 @@ export class Bosses {
       this.current = this.spawn(key, now);
       if (key === 'yohwang') { this.king = this.current; this.kingAt = now; } else this.mid = this.current;
     }
+    if (this.slowEnd && now >= this.slowEnd) { this.slowEnd = 0; sc.clock.scale = 1; } // 승리 연출의 느려짐 끝
     // 대형 요괴를 쓰러뜨리고 잠시 뒤 다음 장소로
     if (this.travelAt && now >= this.travelAt) {
       this.travelAt = 0;
@@ -292,13 +294,14 @@ export class Bosses {
   onKilled(key, x, y) {
     const sc = this.scene;
     this.clearZones();
-    if (key === 'yojang') { // 이 장소의 싸움 끝 → 잠시 뒤 다음 장소로
+    if (key === 'yojang') { // 이 장소의 싸움 끝 → 큰 폭발 연출 → 잠시 뒤 다음 장소로
       sc.chests.drop(x, y);
-      sc.hud.banner('요장 격파!', '곧 다음 장소로 간다');
+      victoryBurst(sc, x, y, '요장 격파!');
+      sc.hud.banner('', '곧 다음 장소로 간다');
       this.travelAt = sc.clock.now + sc.arena.cfg.travelDelayMs;
       return;
     }
     this.done = true;
-    sc.clear();
+    sc.clear(x, y);
   }
 }

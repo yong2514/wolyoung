@@ -12,6 +12,7 @@ export class AutoPlayer {
   vector(dt, scene) {
     if (PARAMS.still) { this.vec.x = 0; this.vec.y = 0; return this.vec; } // 가만히 서 있기
     const v = this.choose(dt, scene);
+    scene.companion.summon(scene.clock.now); // 서하를 부를 수 있으면 부른다 (점검용)
     // 가는 쪽 바로 앞에 장애물이 있으면 점프
     const p = scene.player;
     if ((v.x || v.y) && scene.arena.obstacleNear(p.x + v.x * 34, p.y + v.y * 34, 4)) p.jump(scene.clock.now);

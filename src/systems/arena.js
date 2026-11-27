@@ -158,6 +158,7 @@ export class Arena {
     sc.player.heal(P.playerHp);
     sc.enemies.hpMult = sc.difficulty * (1 + P.enemyHp * i);
     sc.enemies.dmgMult = 1 + P.enemyDamage * i;
+    sc.enemies.orbMult = 1 + P.orbValue * i;
   }
 
   moveEverything(i) {

@@ -6,15 +6,18 @@ const R = 32; // 버튼 반지름 (지름 64 > 48)
 // 오른쪽(왼손 모드면 왼쪽) 둥근 기술 버튼. 기다리는 동안 어두운 부채꼴로 남은 시간을 보여준다.
 // 버튼 위에서 눌렀다 뗀 경우에만 눌림 (조이스틱 손가락이 지나가다 떼도 안 눌림)
 export class SkillButton {
-  constructor(scene, label, onPress) {
+  /** opts.side: 'right'(기본) · 'left' (왼손 모드면 반대), opts.dy: 아래로 얼마나, opts.fontSize */
+  constructor(scene, label, onPress, opts = {}) {
     this.scene = scene;
-    this.x = settings.leftHand ? 42 : W - 42;
-    this.y = BUTTON_ZONE_TOP + 120;
+    const right = (opts.side ?? 'right') === 'right';
+    this.x = right !== settings.leftHand ? W - 42 : 42;
+    this.y = BUTTON_ZONE_TOP + (opts.dy ?? 120);
     const fix = (o) => o.setScrollFactor(0).setDepth(150);
-    this.bg = fix(scene.add.circle(this.x, this.y, R, 0x3a2d6e, 0.9).setStrokeStyle(3, 0xd9ccff, 1).setInteractive());
+    this.bg = fix(scene.add.circle(this.x, this.y, R, opts.fill ?? 0x3a2d6e, 0.9).setStrokeStyle(3, 0xd9ccff, 1).setInteractive());
     this.cd = fix(scene.add.graphics()).setDepth(151);
-    this.text = fix(scene.add.text(this.x, this.y, label, { fontFamily: FONT, fontSize: '26px', fontStyle: 'bold', color: '#ffffff' })
-      .setOrigin(0.5)).setDepth(152);
+    this.text = fix(scene.add.text(this.x, this.y, label, {
+      fontFamily: FONT, fontSize: opts.fontSize ?? '26px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5)).setDepth(152);
     this.wasReady = false;
     let pressed = false;
     this.bg.on('pointerdown', () => { pressed = true; });
